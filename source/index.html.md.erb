@@ -90,7 +90,7 @@ def make_req_sign(data, key):
 txamt = '10' # In USD,EUR,etc. Cent
 txcurrcd = 'EUR'
 pay_type = '800101' # Alipay CPM = 800108 , MPM = 800101
-auth_code='283854702356157409' # CPM only
+auth_code='283854702356157409' #CPM only
 out_trade_no = random_string
 txdtm = current_time
 goods_name = 'test1'   
@@ -254,7 +254,7 @@ The API will return response content in JSON format. We encourage developers to 
 Field | Description 
 --------- | ------- 
 Character | <code>UTF-8</code>  
-method | **POST/ GET** (Depends on individual API function)
+Method | **POST/ GET** (Depends on individual API function)
 Content-type | <code>application/x-www-form-urlencoded</code>
 
 ### Required Parameter Settings in HTTP Header to Request the API
@@ -338,34 +338,36 @@ public class Requests{
 
 Code | Description 
 --------- | ------- 
-800008 | Customer Presented QR Code Payment (CPM) for WeChat, Alipay, UNIONPAY Quick Pass
+800008 | Consumer Present QR Code Mode (CPM) for WeChat, Alipay, UNIONPAY Quick Pass
 800101 | Alipay Merchant Presented QR Code Payment in store (MPM) 
 800107 | Alipay Service Window H5 Payment 
-800108 | Alipay Customer Presented QR Code Payment (CPM) 
+800108 | Alipay Consumer Presented QR Code Payment (CPM) 
 800201 | WeChat Merchant Presented QR Code Payment (MPM) 
 800207 | WeChat JSAPI Payment (Also known as WeChat Official Account Payment) 
-800208 | WeChat Customer Presented QR Code Payment (CPM) 
+800208 | WeChat Consumer Presented QR Code Payment (CPM) 
 800213 | WeChat Mini-Program Payment 
 800701 | UNIONPAY Quick Pass Merchant Presented QR Code Payment (MPM) 
-800708 | UNIONPAY Quick Pass Customer Presented QR Code Payment (CPM) 
-801008 | WeChat Hong Kong Customer Presented QR Code Payment (CPM) (For WeChat Hong Kong merchants) 
+800708 | UNIONPAY Quick Pass Consumer Presented QR Code Payment (CPM) 
+801008 | WeChat Hong Kong Consumer Presented QR Code Payment (CPM) (For WeChat Hong Kong merchants) 
 801010 | WeChat Hong Kong In-App Payment (Applicable to merchants applying to WeChat Hong Kong) 
 801101 | Alipay Merchant Presented Online QR Code Payment (Overseas Merchant) 
 801107 | Alipay Online WAP Payment (Overseas Merchant) 
-801208 | LINEPAY Customer Presented QR Code Payment 
+801110 | Alipay in-APP Payments
+801208 | LINEPAY Consumer Presented QR Code Payment 
 801301 | LINEPAY Online Payments
 801307 | LINEPAY Merchant Presented QR Code Payment 
-801408 | AIRPAY Customer Presented QR Code Payment 
+801408 | AIRPAY Consumer Presented QR Code Payment 
 801501 | Alipay Merchant Presented Online QR Code Payment (HK Merchant) 
 801510 | Alipay In-App Payment (HK Merchant) 
 801512 | Alipay Online WAP Payment (HK Merchant) 
 801701 | NETSPAY 
-801801 | Alipay Customer Presented QR Code Pre-authorization
+801801 | Alipay Consumer Presented QR Code Pre-authorization
 801802 | Alipay Merchant Presented QR Code Pre-authorization 
-801908 | Origami Customer Presented QR Code Payment 
+801908 | Origami Consumer Presented QR Code Payment 
 802001 | HK FPS Merchant Presented QR Code Payment (MPM) 
-802201 | AIRPAY Merchant Presented QR Code Payment 
-802301 | PayNow Merchant Presented QR Code Payment 
+802201 | AIRPAY Merchant Presented QR Code Payment (MPM)  
+802301 | PayNow Merchant Presented QR Code Payment (MPM)  
+804201 | GrabPay Merchant Presented QR Code Payment (MPM) 
 
 
 ## API Endpoint for Payments
@@ -423,7 +425,7 @@ def make_req_sign(data, key):
 txamt = '10' #In USD,EUR,etc. Cent
 txcurrcd = 'EUR'
 pay_type = '800101' # Alipay CPM = 800108 , MPM = 800101
-auth_code='283854702356157409' # CPM only
+auth_code='283854702356157409' #CPM only
 out_trade_no = '01234567890123'
 txdtm = current_time
 goods_name = 'test1'   
@@ -432,7 +434,7 @@ mchid = 'ZaMVg*****'
 key = client_key
 
 
-#data ={'txamt': txamt, 'txcurrcd': txcurrcd, 'pay_type': pay_type, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'goods_name': goods_name, 'udid': udid, 'auth_code': auth_code, 'mchid': mchid, 'auth_code': auth_code}
+#data ={'txamt': txamt, 'txcurrcd': txcurrcd, 'pay_type': pay_type, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'goods_name': goods_name, 'udid': udid, 'auth_code': auth_code, 'mchid': mchid}
 data ={'txamt': txamt, 'txcurrcd': txcurrcd, 'pay_type': pay_type, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'mchid': mchid}
 
 r = requests.post(environment+"/trade/v1/payment",data=data,headers={'X-QF-APPCODE':app_code,'X-QF-SIGN':make_req_sign(data, key)})
@@ -581,6 +583,8 @@ Currency | <code>txcurrcd</code> | Yes | String(3) | Transaction Currency: Hong 
 Payment type | <code>pay_type</code> | Yes | String(6) | Please refer to the section [Payment Codes](#payment-codes) for a complete list of payment types
 API Order Number | <code>out_trade_no</code> | Yes | String(128)| External transaction number / Merchant platform transaction number: This parameter must be unique for each payment and refund request under the same merchant account in the system.
 Request transaction time | <code>txdtm</code> | Yes | String(20) | Transaction time fomat：<br> YYYY-MM-DD hh:mm:ss 
+Authorization Code | <code>auth_code</code> | Yes<br> (CPM only) | String(128) | Specifies the authorization code for scanning a barcode/QR Code. The <code>auth_code</code> returned is unique in each authorization. Each <code>auth_code</code> can be used only once and will automatically expire in one day. For testing CPM with Alipay and WeChat Pay the <code>auth_code</code> can be extracted by any QRC reader or manually found in the consumer wallet below the barcode.
+Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3)  | QRC expiration time in unit minutes. The default expiration time is 30 minutes. The parameter can manually be adjusted to a minimum of 5 minutes, and up to a maximum of 120 minutes.<br> Available for: <br>800201 - WeChat scan code<br>800101 - Alipay scan code <br>801512 - Alipay Hong Kong Wap payment<br>801501 - Alipay Hong Kong scan code<br>801107 - Alipay overseas Wap payment<br>801101 - Alipay overseas scan code<br>801010 - WeChat Hong Kong APP<br>801510 - Alipay Hong Kong APP
 Product name identification | <code>goods_name</code> | No | String(64) | Goods Name / Marking: Cannot exceed 20 alphanumeric or contain special characters. Cannot be empty for app payment. 
 QF Pay merchant number | <code>mchid</code> | No | String(16) | May or may not be given to merchant. If MCHID is given, it is mandatory to provide the MCHID .On the contrary, if MCHID is not provided, merchants shall not pass the MCHID field in the API request. 
 Time zone | <code>txzone</code> | No | String(5) | Transaction Time zone: Record of the transaction in local time, default time zone is Beijing time UTC+8. 
@@ -624,7 +628,7 @@ Return code | <code>respcd</code> | String(4) | 0000 = Request successful. <br> 
 | 1243       | The store has been disabled. Do not conduct payments, contact the owner to confirm (1243)  |
 | 1250       | The transaction is forbidden. For more information please contact QFPay Customer Service Team (1250) |
 | 1251       | The store has not been configured correctly, we are currently working to fix this problem (1251)  |
-| 1254       | A problem occured. We are currently resolving the issue. (1254)  |
+| 1254       | A problem occured. We are currently resolving the issue (1254)  |
 | 1260       | The order has already been paid for, please confirm the transaction result before conducting more transactions (1260) |
 | 1261       | The order has not been paid for, please confirm the transaction result before conducting more transactions (1261)  |
 | 1262       | The order has been refunded, please confirm the order status before conducting more transactions (1262)  |
@@ -769,7 +773,7 @@ The customer generates a dynamic QR code in their Alipay / WeChat Pay wallet and
 |Parameter name | Parameter code | Mandatory | Parameter type | Description |
 |:----    |:---|:----- |-----   |----   |
 |Public payment parameters | — | — |— |— |
-|WeChat/ Alipay authorization code | <code>auth_code</code> | Yes | String(128) |  Input by the user   | 
+Authorization Code | <code>auth_code</code> | Yes<br> (CPM only) | String(128) | Specifies the authorization code for scanning a barcode/QR Code. The <code>auth_code</code> returned is unique in each authorization. Each <code>auth_code</code> can be used only once and will automatically expire in one day. For testing CPM with Alipay and WeChat Pay the <code>auth_code</code> can be extracted by any QRC reader or manually found in the consumer wallet below the barcode.
 
 ### Response Parameters
 
@@ -838,7 +842,7 @@ The merchant generates a dynamic QR code based on the Alipay / WeChat Pay protoc
 |:----    |:---|:----- |-----   |-----   |
 |Public payment parameter | —  | — | — | — |
 |Payment mark | <code>pay_tag</code>  | No |     String(16) | The default value is ALIPAYHK Alipay <br/>Continental version of the value: ALIPAYCN <br/>801501 - Alipay Hong Kong PC scan code <br/>801512 - Alipay Hong Kong Wap payment <br/>801510 - Alipay Hong Kong APP payment |
-|Transaction expiration time |  <code>expired_time</code>  | No | String(3) | Unit: minute, minimum 5 minutes, maximum 120 minutes of support <br/>800201 -WeChat scan code <br/>800101 - Alipay scan code <br/>801512 - Alipay Hong Kong Wap payment <br/>801501 - Alipay Hong Kong scan code <br/>801107 - Alipay overseas Wap payment <br/>801101 - Alipay overseas scan code <br/>801010 - WeChat Hong Kong APP <br/>801510 - Alipay Hong Kong APP |
+Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3)  | QRC expiration time in unit minutes. The default expiration time is 30 minutes. The parameter can manually be adjusted to a minimum of 5 minutes, and up to a maximum of 120 minutes.<br> Available for: <br>800201 - WeChat scan code<br>800101 - Alipay scan code <br>801512 - Alipay Hong Kong Wap payment<br>801501 - Alipay Hong Kong scan code<br>801107 - Alipay overseas Wap payment<br>801101 - Alipay overseas scan code<br>801010 - WeChat Hong Kong APP<br>801510 - Alipay Hong Kong APP
 |Designated payment method    |<code>limit_pay</code>|No |String   |The parameter value is specified as no_credit, and credit card payment is prohibited. This setting only applies to mainland China.  |
 
 ### Response Parameters
@@ -1120,11 +1124,14 @@ The clearing statement for a particular payment channel is downloaded regularly.
 
 # Asynchronous Notifications
 
-The request parameters from Asynchronous Notifications may include additional parameters in future versions. Developers must ensure that their programs can support new parameters. In addition, developers can get the latest development documentation from this website. If you have any questions, please feel free to send email to **technical.support@qfpay.global** for more information.
+<aside class="notice"> To configure your notification URL of choice, please send the address as well as merchant and store information via email to technical.support@qfpay.global</aside>
+
+The request parameters from Asynchronous Notifications may include additional parameters in future versions. Developers must ensure that their programs can support new parameters. In addition, developers can get the latest development documentation from this website. 
+
 
 ### Description
 
-Upon successful payment and refund, QFPay API will send an asynchronous notification message to the URL address defined by merchant. Merchant can develop an end-point to receive this notification message and update the status of a transaction accordingly. We recommend merchants to use the query function of the API in conjunction with the asynchronous notification end point to retireve the payment status. Asynchronous notifications only works ports 80 and 443 due to security requriement.
+Upon successful payment and refund, QFPay API will send an asynchronous notification message to the URL address defined by the merchant. Merchant can develop an end-point to receive this notification message and update the status of a transaction accordingly. We recommend merchants to use the query function of the API in conjunction with the asynchronous notification end point to retireve the payment status. Asynchronous notifications only works ports 80 and 443 due to security requriement.
 
 ## Asynchronous Notification Rules
 
@@ -1243,7 +1250,7 @@ key = client_key
 mchid = 'ZaMVg*****'
 
 
-#data ={'txamt': txamt, 'syssn': syssn, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'udid': udid, 'auth_code': auth_code, 'mchid': mchid, 'auth_code': auth_code}
+#data ={'txamt': txamt, 'syssn': syssn, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'udid': udid, 'auth_code': auth_code, 'mchid': mchid}
 data ={'mchid': mchid, 'txamt': txamt, 'syssn': syssn,  'out_trade_no': out_trade_no, 'txdtm': txdtm}
 
 r = requests.post(environment+"/trade/v1/refund",data=data,headers={'X-QF-APPCODE':app_code,'X-QF-SIGN':make_req_sign(data, key)})
@@ -1497,8 +1504,8 @@ Request Body:
 |Parameter name | Parameter code | Mandatory | Parameter type | Description |
 |:----    |:---|:----- |-----   |----   |
 | Public payment parameter    |—|— |—  |—   |
-| Alipay openid  |<code>openid</code>  |No | String(64)  |Corresponding to the APP authorization method   |
-| Alipay payment code   |<code>auth_code</code>|No |String   |Corresponding to the anti-sweep (present payment code) authorization method  |
+| Alipay openid  |<code>openid</code>  |No | String(64)  | Corresponding to the APP authorization method.   |
+| Alipay payment code   |<code>auth_code</code>|No |String(128)   | Specifies the authorization code for scanning a barcode/QR Code. The <code>auth_code</code> returned is unique in each authorization. Each <code>auth_code</code> can be used only once and will automatically expire in one day. For testing CPM with Alipay and WeChat Pay the auth_code can be extracted by any QRC reader or manually found in the consumer wallet below the barcode. |
 
 
 ### Response Parameters
@@ -1709,7 +1716,7 @@ Request Body:
 |Public payment parameters    |—|— |—   |—   |
 |Product description    |<code>goods_info</code>|No | String  | Must not contain special characters   |
 |Payment mark    |<code>pay_tag</code>|No | String(16)  | The default value is ALIPAYHK<br>Alipay Continental version of the value: ALIPAYCN applies<br>801501 - Alipay Hong Kong pc scan code<br>801512 - Alipay Hong Kong Wap payment<br>801510 - Alipay Hong Kong APP payment  |
-|Order expiration time   |<code>expired_time</code>|No |String(3)   |Unit: minute, minimum 5 minutes, maximum 120 minutes, support<br>800201 - WeChat scan code<br>800101 - Alipay scan code <br>801512 - Alipay Hong Kong Wap payment<br>801501 - Alipay Hong Kong scan code<br>801107 - Alipay overseas Wap payment<br>801101 - Alipay overseas scan code<br>801010 - WeChat Hong Kong APP<br>801510 - Alipay Hong Kong APP  |
+Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3)  | QRC expiration time in unit minutes. The default expiration time is 30 minutes. The parameter can manually be adjusted to a minimum of 5 minutes, and up to a maximum of 120 minutes.<br> Available for: <br>800201 - WeChat scan code<br>800101 - Alipay scan code <br>801512 - Alipay Hong Kong Wap payment<br>801501 - Alipay Hong Kong scan code<br>801107 - Alipay overseas Wap payment<br>801101 - Alipay overseas scan code<br>801010 - WeChat Hong Kong APP<br>801510 - Alipay Hong Kong APP
 
 
 ### Response Parameters
@@ -1717,7 +1724,7 @@ Request Body:
 |Parameter code | Secondary parameter code  | Parameter name |
 |:----    |:---|:----- |
 | <code>pay_params</code>   | <code>partner</code>                      |Partner |
-|              | <code>seller_i</code>                     |  Unique Alipay user number referencing the Alipay payment account                        |
+|              | <code>seller_id</code>                     |  Unique Alipay user number referencing the Alipay payment account                        |
 |              | <code>subject</code>                      | Product name / transaction number / order number / order keyword, etc.                    |
 |              | <code>body</code>                         | A specific description of a transaction. If it refers to a basket of products, please accumulate the product description string in the body. |
 |              | <code>total_fee</code>                    | Total amount                                                  |
@@ -1924,6 +1931,7 @@ Initiate a payment request with the parameters below.
 |:----    |:---|:----- |-----   |----   |
 |Public payment parameters | — | — |— |Refer to the public payment API documentation|
 |WeChat authorization code   |<code>sub_openid</code>|Yes |String(128)   |   |
+Order expiration time | <code>expired_time</code> | No | String(3)  | QRC expiration time in unit minutes. The default QRC expiration time for WeChat Mini Programs is 30 minutes. The parameter can manually be adjusted to a minimum of 5 minutes, and up to a maximum of 120 minutes.
 |Designated payment method   |<code>limit_pay</code>|No |String    |The parameter value is specified as <code>no_credit</code>, and credit card payment is prohibited. This setting is only valid for mainland China.  |
 
 ### Response Parameters
