@@ -68,7 +68,7 @@ Europe | https://openapi-eur.qfapi.com
 ## Signature Generation
 
 ```plaintext
-Select Python, Java or Node.js for code instructions.
+For code instructions select Python, Java or Node.js with the tabs above.
 ```
 
 
@@ -366,8 +366,16 @@ Code | Description
 801908 | Origami Consumer Presented QR Code Payment 
 802001 | HK FPS Merchant Presented QR Code Payment (MPM) 
 802201 | AIRPAY Merchant Presented QR Code Payment (MPM)  
-802301 | PayNow Merchant Presented QR Code Payment (MPM)  
-804201 | GrabPay Merchant Presented QR Code Payment (MPM) 
+802301 | PayNow Merchant Presented QR Code Payment (MPM)
+803208 | TNG (Touch N Go) in-store QRC Payment - Consumer Present Mode (CPM)  
+803801 | Dash    in-store QRC Payment - Merchant Present Mode (MPM)
+803808 | Dash    in-store QRC Payment - Merchant Present Mode (MPM)
+804001 | Boost   in-store QRC Payment - Merchant Present Mode (MPM)
+804008 | Boost   in-store QRC Payment - Consumer Present Mode (CPM)
+804101 | Maybank in-store QRC Payment - Merchant Present Mode (MPM)
+804108 | Maybank in-store QRC Payment - Consumer Present Mode (CPM)
+804201 | GrabPay in-store QRC Payment - Merchant Present Mode (MPM)
+804208 | GrabPay in-store QRC Payment - Consumer Present Mode (CPM)
 
 
 ## API Endpoint for Payments
@@ -588,7 +596,7 @@ Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3
 Product name identification | <code>goods_name</code> | No | String(64) | Goods Name / Marking: Cannot exceed 20 alphanumeric or contain special characters. Cannot be empty for app payment. 
 QF Pay merchant number | <code>mchid</code> | No | String(16) | May or may not be given to merchant. If MCHID is given, it is mandatory to provide the MCHID .On the contrary, if MCHID is not provided, merchants shall not pass the MCHID field in the API request. 
 Time zone | <code>txzone</code> | No | String(5) | Transaction Time zone: Record of the transaction in local time, default time zone is Beijing time UTC+8. 
-Device ID | <code>udid</code> | No | String(40) |  Unique transaction device ID. Will be displayed on merchant portal. 
+Device ID | <code>udid</code> | No | String(40) |  Unique transaction device ID. Is displayed on the merchant portal. 
 
 
 ### Public Payment Response Parameters
@@ -859,6 +867,11 @@ Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3
 <aside class="warning"> If the <code>mchid</code> is provided, it is mandatory to submit the <code>mchid</code> when calling the API (unless otherwise specified). On the contrary, if <code>mchid</code> is not provided, merchants shall not pass the <code>mchid</code> field in the API request.
 </aside>
 
+### HTTP Request
+
+`GET ../trade/v1/query`
+
+
 ## API Endpoint for Transaction Enquiry
 
 ```plaintext
@@ -1122,71 +1135,63 @@ The clearing statement for a particular payment channel is downloaded regularly.
 
 
 
-# Asynchronous Notifications
+# Reversal/ Cancel
 
-<aside class="notice"> To configure your notification URL of choice, please send the address as well as merchant and store information via email to technical.support@qfpay.global</aside>
+<aside class="warning">
+Reversals should be used as a last resort when the transaction status cannot be determined, e.g. no payment notification is received, the response timed-out, there are network issues and so on. The query API endpoint should be used first to check the transaction status.
+</aside>
 
-The request parameters from Asynchronous Notifications may include additional parameters in future versions. Developers must ensure that their programs can support new parameters. In addition, developers can get the latest development documentation from this website. 
+The reversal API endpoint allows the merchant to cancel/ reverse a transaction that is currently in progress. Transactions that have already been processed successfully (return code 0000 = successful) can no longer be reversed or cancelled. If you would like to revert a successful transaction please refer to the [Refund Endpoint](#refunds). 
 
+### HTTP Request for Alipay CPM & MPM
+`GET ..trade/v1/reversal`
 
-### Description
+### HTTP Request for WeChat Pay CPM
+`GET ..trade/v1/reversal`
 
-Upon successful payment and refund, QFPay API will send an asynchronous notification message to the URL address defined by the merchant. Merchant can develop an end-point to receive this notification message and update the status of a transaction accordingly. We recommend merchants to use the query function of the API in conjunction with the asynchronous notification end point to retireve the payment status. Asynchronous notifications only works ports 80 and 443 due to security requriement.
+### HTTP Request for WeChat Pay MPM
+`GET ..trade/v1/close`
 
-## Asynchronous Notification Rules
+### HTTP Request for other qualified Wallets*
+`GET ..trade/v1/close`
 
-1) The merchant will only be notified after the payment or refund transaction has been successful.
+*If you would like to use this endpoint on a wallet other than Alipay & Wechat Pay please contact us for instructions.
 
-2) Please send an email with your notification endpoint URL address to **technical.support@qfpay.global** for the asynchronous notification setup. Our technical support team will setup the provided URL for you.
-
-3) Upon receiving the notification, merchant shall verifiy the message integrity according to signature verification procedure described below. If the verification is successful, the system is required to response with status code 200 OK and the string SUCCESS in the response body.
-
-4) If our API does not receive a response with status code 200 OK and SUCCESS message, we will send out asynchronous notifications at the following intervals after the first message; 2m, 10m, 10m, 60m, 2h, 6h, 15h. Notifications will stop when the response with status code 200 OK and SUCCESS message is received.
-
-5) One set of app code and key can be setup with one notification URL address only. Patners shall use one notification URL address for their sub-merchant.
-
-6) Method: `POST content-type:application/json`
-
-## Signature Verification
-
-**Step 1:** Obtain the signature from the X-QF-SIGN field in the http request header
-
-**Step 2:** Attach the key to the end of the request body received by the end point
-
-**Step 3:** Sign the string from step 2 with MD5 algorithm
-
-**Step 4:** Compare the MD5 result with the signature from X-QF-SIGN, return an http response with status code 200 OK and SUCCESS in the response body if the verification is successful
-
-
-## Request Body Parameters of Asynchronous Notifications
+### Request Parameters
 
 Parameter | Mandatory | Type | Description  
 --------- | ------- | --------- | ------- 
-<code>notify_type</code> | Yes | String | Notification Type: payment/ refund 
-<code>syssn</code> | Yes | String(40) | QFPay Transaction Number 
-<code>out_trade_no</code> | Yes | String(128) | API Order Number, this is the external transaction number defined by our partner
-<code>pay_type</code> | Yes | String(6) | Pay_type value, please refer to Code Instruction section 
-<code>txdtm</code> | Yes | String(20) | Order creation time supplied by merchant in payment request 
-<code>txamt</code> | Yes | Int(11) | Transaction amount 
-<code>respcd</code> | Yes | String(4) | Transaction status - Must be 0000 in async notification message 
-<code>sysdtm</code> | Yes | String(20) | Transaction creation time in system 
-<code>paydtm</code> | Yes | String(20) | Payment time of the transaction 
-<code>cancel</code> | Yes | String  | Transaction cancel status: <br> 0 = Not cancelled <br> 1 = For CPM: Transaction reversed or refunded successfully <br> 2 = For MPM: Transaction canceled successfully <br> 3 = Transaction refunded <br> 4 = Alipay Preauth order finished <br> 5 = Transaction partially refunded
-<code>cardcd</code> | No | String | For WeChat and AliPay only. The user id dedicated to the payment account. 
-<code>goods_name</code> | No | String | Goods name or marking 
-<code>status</code> | Yes | String | 1 = payment success 
-<code>txcurrcd</code> | Yes | String(3) | Currency: Hong Kong Dollar: HKD ; Chinese Yuan: CNY 
-<code>mchid</code> | No |  String(16) | Hashed merchant ID (Agents must provide this value) 
-<code>chnlsn</code> | No | String | Transaction number from payment channel 
-<code>cash_fee</code> | Yes | Int | Actual payment amount by user = transaction amount - discounts 
-<code>cash_fee_type</code> | Yes | String | Actual payment currency: CNY 
-<code>chnlsn2</code> | No | String | Additional transaction number from payment channel (if applicable) 
+<code>mchid</code> | No | String(16) | Merchant ID allocated by QFPay
+<code>syssn</code> | Yes | String(40) | QFPay transaction number, returned by the system once payment is completed
+<code>out_trade_no</code> | Yes* | String(128) | External transaction number
+<code>txamt</code> | Yes* | Int(11) | Amount of the transaction. Unit in cents (i.e. 100 = $1)
+<code>txdtm</code> | Yes | String(20) | Transaction time fomat: YYYY-MM-DD hh:mm:ss
+<code>udid</code> | No | String(40) | Unique transaction device ID. Is displayed on the merchant portal.
+
+*Either the <code>syssn</code> or <code>out_trade_no</code> must be provided.
+
+
+### Response Parameters
+
+Parameter | Type | Description  
+--------- | --------- | ------- 
+<code>orig_syssn</code> | String(40) | Refers to the original QFPay transaction number
+<code>syssn</code> | String(40) | QFPay transaction number of the cancel/ reversal
+<code>out_trade_no</code> | String(128) | External transaction number
+<code>txamt</code> | Int(11) | Amount of the transaction. Unit in cents (i.e. 100 = $1)
+<code>txcurrcd</code> | String(3) | Transaction currency e.g. HKD
+<code>txdtm</code> | String(20) | Transaction time. Format: YYYY-MM-DD hh:mm:ss
+<code>sysdtm</code> | String(20) | System transaction time. Format: YYYY-MM-DD hh:mm:ss
+<code>chnlsn</code> | String | Transaction number from payment channel (wallet side)
+<code>respcd</code> | String(4) | Response code <br> 0000 = Reversal/ cancel successul <br> 1143/1145 = Reversal/ cancel in progress <br> others = Reversal/ cancel failed
+<code>resperr</code> | String(128) | Result description
+<code>respmsg</code> | String(128) | Information description
 
 
 # Refunds
 
 <aside class="success">
-Refunds can be initiated in our Merchant App, in the Merchant Management System (MMS) and through the API.
+Refunds can be initiated in our Merchant App, in the Merchant Management System (MMS) and through the API. Only transactions with the return code 0000 (transaction successful) can be refunded.
 </aside>
 
 ## API Endpoint for Refunds
@@ -1412,6 +1417,68 @@ Merchants can use the refund interface to refund transactions. The merchant acco
 |System transaction time | <code> sysdtm </code>  | String(20)  |Format: YYYY-MM-DD hh&#58;mm:ss|
 |Return code| <code> respcd </code> |  String(4)|  0000-Request successful.<br>1143/1145 - merchants are required to continue to query the transaction result. <br/>All other return codes indicate transaction failure. Please refer to the page Payment status codes for a complete list of payment types.|
 |Response message| <code> resperr </code> |  String(128)| |
+
+
+
+# Asynchronous Notifications
+
+<aside class="notice"> To configure your notification URL of choice, please send the address as well as merchant and store information via email to technical.support@qfpay.global</aside>
+
+The request parameters from Asynchronous Notifications may include additional parameters in future versions. Developers must ensure that their programs can support new parameters. In addition, developers can get the latest development documentation from this website. 
+
+
+### Description
+
+Upon successful payment and refund, QFPay API will send an asynchronous notification message to the URL address defined by the merchant. Merchant can develop an end-point to receive this notification message and update the status of a transaction accordingly. We recommend merchants to use the query function of the API in conjunction with the asynchronous notification end point to retireve the payment status. Asynchronous notifications only works ports 80 and 443 due to security requriement.
+
+## Asynchronous Notification Rules
+
+1) The merchant will only be notified after the payment or refund transaction has been successful.
+
+2) Please send an email with your notification endpoint URL address to **technical.support@qfpay.global** for the asynchronous notification setup. Our technical support team will setup the provided URL for you.
+
+3) Upon receiving the notification, merchant shall verifiy the message integrity according to signature verification procedure described below. If the verification is successful, the system is required to response with status code 200 OK and the string SUCCESS in the response body.
+
+4) If our API does not receive a response with status code 200 OK and SUCCESS message, we will send out asynchronous notifications at the following intervals after the first message; 2m, 10m, 10m, 60m, 2h, 6h, 15h. Notifications will stop when the response with status code 200 OK and SUCCESS message is received.
+
+5) One set of app code and key can be setup with one notification URL address only. Patners shall use one notification URL address for their sub-merchant.
+
+6) Method: `POST content-type:application/json`
+
+## Signature Verification
+
+**Step 1:** Obtain the signature from the X-QF-SIGN field in the http request header
+
+**Step 2:** Attach the key to the end of the request body received by the end point
+
+**Step 3:** Sign the string from step 2 with MD5 algorithm
+
+**Step 4:** Compare the MD5 result with the signature from X-QF-SIGN, return an http response with status code 200 OK and SUCCESS in the response body if the verification is successful
+
+
+## Request Body Parameters of Asynchronous Notifications
+
+Parameter | Mandatory | Type | Description  
+--------- | ------- | --------- | ------- 
+<code>notify_type</code> | Yes | String | Notification Type: payment/ refund 
+<code>syssn</code> | Yes | String(40) | QFPay Transaction Number 
+<code>out_trade_no</code> | Yes | String(128) | API Order Number, this is the external transaction number defined by our partner
+<code>pay_type</code> | Yes | String(6) | Pay_type value, please refer to Code Instruction section 
+<code>txdtm</code> | Yes | String(20) | Order creation time supplied by merchant in payment request 
+<code>txamt</code> | Yes | Int(11) | Transaction amount 
+<code>respcd</code> | Yes | String(4) | Transaction status - Must be 0000 in async notification message 
+<code>sysdtm</code> | Yes | String(20) | Transaction creation time in system 
+<code>paydtm</code> | Yes | String(20) | Payment time of the transaction 
+<code>cancel</code> | Yes | String  | Transaction cancel status: <br> 0 = Not cancelled <br> 1 = For CPM: Transaction reversed or refunded successfully <br> 2 = For MPM: Transaction canceled successfully <br> 3 = Transaction refunded <br> 4 = Alipay Preauth order finished <br> 5 = Transaction partially refunded
+<code>cardcd</code> | No | String | For WeChat and AliPay only. The user id dedicated to the payment account. 
+<code>goods_name</code> | No | String | Goods name or marking 
+<code>status</code> | Yes | String | 1 = payment success 
+<code>txcurrcd</code> | Yes | String(3) | Currency: Hong Kong Dollar: HKD ; Chinese Yuan: CNY 
+<code>mchid</code> | No |  String(16) | Hashed merchant ID (Agents must provide this value) 
+<code>chnlsn</code> | No | String | Transaction number from payment channel 
+<code>cash_fee</code> | Yes | Int | Actual payment amount by user = transaction amount - discounts 
+<code>cash_fee_type</code> | Yes | String | Actual payment currency: CNY 
+<code>chnlsn2</code> | No | String | Additional transaction number from payment channel (if applicable) 
 
 
 
@@ -1750,10 +1817,21 @@ Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3
 
 
 
-# WeChat Pay
+# WeChat JSAPI (H5) Pay
 
 <a href="https://sdk.qfapi.com/images/wechat_jsapi_process.jpg" target="_blank">   
 ![WeChat JSAPI process-flow](/images/wechat_jsapi_process.jpg)</a>
+
+## JSAPI Payment Types
+
+There are two different methods how JSAPI payments can be implemented.
+
+**1. JSAPI on real name authenticated official accounts** <br>
+For this kind of integration, merchants shall register their own official account with WeChat and we will bind the official account to the merchant's QF Pay payment account. In this case merchants can create and publish their own content, access customer information and collect their own followers. When choosing this implementation method, merchants have to acquire the <code>oauth_code</code>, user <code>openid</code> and trigger WeChat Pay via the <a href="https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=7_1">official WeChat platform</a>. Merchants only need to refer to the QF Pay [transaction enquiry API endpoint](#transaction-enquiry).
+
+**2. JSAPI without a real name registered official account** <br>
+For this kind of payment, merchants can build upon QF Pay's official account. This integration is only applicable to merchants who are using the in-direct settlement option (i.e. settlement is provided by QFPay). For this implementation, merchants shall use QFPay's API to get the <code>oauth_code</code>, user <code>openid</code> and trigger WeChat Pay as described below.
+
 
 ## GET oauth_code
 
