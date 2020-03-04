@@ -593,7 +593,7 @@ API Order Number | <code>out_trade_no</code> | Yes | String(128)| External trans
 Request transaction time | <code>txdtm</code> | Yes | String(20) | Transaction time fomat：<br> YYYY-MM-DD hh:mm:ss 
 Authorization Code | <code>auth_code</code> | Yes<br> (CPM only) | String(128) | Specifies the authorization code for scanning a barcode/QR Code. The <code>auth_code</code> returned is unique in each authorization. Each <code>auth_code</code> can be used only once and will automatically expire in one day. For testing CPM with Alipay and WeChat Pay the <code>auth_code</code> can be extracted by any QRC reader or manually found in the consumer wallet below the barcode.
 Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3)  | QRC expiration time in unit minutes. The default expiration time is 30 minutes. The parameter can manually be adjusted to a minimum of 5 minutes, and up to a maximum of 120 minutes.<br> Available for: <br>800201 - WeChat scan code<br>800101 - Alipay scan code <br>801512 - Alipay Hong Kong Wap payment<br>801501 - Alipay Hong Kong scan code<br>801107 - Alipay overseas Wap payment<br>801101 - Alipay overseas scan code<br>801010 - WeChat Hong Kong APP<br>801510 - Alipay Hong Kong APP
-Product name identification | <code>goods_name</code> | No | String(64) | Goods Name / Marking: Cannot exceed 20 alphanumeric or contain special characters. Cannot be empty for app payment. 
+Product name identification | <code>goods_name</code> | No | String(64) | Goods Name / Marking: Cannot exceed 20 alphanumeric or contain special characters. Cannot be empty for app payment. Parameter needs to be **urlencode** if it is written in Chinese characters.
 QF Pay merchant number | <code>mchid</code> | No | String(16) | May or may not be given to merchant. If MCHID is given, it is mandatory to provide the MCHID .On the contrary, if MCHID is not provided, merchants shall not pass the MCHID field in the API request. 
 Time zone | <code>txzone</code> | No | String(5) | Transaction Time zone: Record of the transaction in local time, default time zone is Beijing time UTC+8. 
 Device ID | <code>udid</code> | No | String(40) |  Unique transaction device ID. Is displayed on the merchant portal. 
@@ -604,7 +604,7 @@ Device ID | <code>udid</code> | No | String(40) |  Unique transaction device ID.
 Parameter name | Parameter code | Type | Description 
 --------- | -------- | --------- | ------- 
 Payment type | <code>pay_type</code> | String(6) | 
-System transaction time | <code>sysdtm</code> | String(20) | Format：YYYY-MM-DD hh:mm:ss 
+System transaction time | <code>sysdtm</code>* | String(20) | Format：YYYY-MM-DD hh:mm:ss 
 Request transaction time | <code>txdtm</code> | String(20) | Format：YYYY-MM-DD hh:mm:ss  
 Response message | <code>resperr</code> | String(128) |  
 Payment amount | <code>txamt</code> | Int(11) |  
@@ -613,6 +613,7 @@ External transaction number | <code>out_trade_no</code> | String(128) | External
 QFPay transaction number | <code>syssn</code> | String(40) | 
 Return code | <code>respcd</code> | String(4) | 0000 = Request successful. <br> 1143/1145 = merchants are required to continue to query the transaction result. <br> All other return codes indicate transaction failure. Please refer to the page [Transaction Status Codes](#transaction-status-codes) for a complete list of response codes. 
 
+*The response parameter <code>sysdtm</code> will be used as the cut-off time for settlements.
 
 
 ## Transaction Status Codes
@@ -620,15 +621,28 @@ Return code | <code>respcd</code> | String(4) | 0000 = Request successful. <br> 
 | Return code | Description                                               |
 | ---------- | ------------------------------------------------------------ |
 | 0000       | Transaction successful    |
+| 1100       | System under maintenance (1100)    |
+| 1101       | Reversal error (1101)     |
+| 1102       | Duplicate request (1102)  |
+| 1103       | Request format error (1103)  |
 | 1104       | Request parameter error (1104)  | 
+| 1105       | Device not activated (1105)  |
+| 1106       | Invalid device (1106)  |
+| 1107       | Device not allowed (1107)  |
 | 1108       | Signature error (1108)    |
+| 1125       | Transaction has been refunded already (1125)    |
+| 1136       | The transaction does not exist or is not operational (1136)    |
+| 1142       | Order already closed (1142)    |
 | 1143       | The order has not been paid for, the password is currently being entered (1143)   |
 | 1145       | Please wait while processing (1145)    |
+| 1147       | Wechat pay transaction error (1147)    |
 | 1150       | Your billing method is T0 and does not support canceling transactions. (1150)    |
+| 1155       | Refund request denied (1155)    |
+| 1181       | Order expired (1181)    |
 | 1201       | Insufficient balance, please use a different payment method (1201)   |
 | 1202       | Incorrect or expired payment code, please show the correct payment code or refresh the payment code and retry (1202)   |
-| 1203       | Account error, please confirm the payment account is available (1203)  |
-| 1204       | Bank error, please confirm that the payment account is available (1204)  |
+| 1203       | Merchant account error, confirm that the payment account is configured correctly (1203)  |
+| 1204       | Bank error, confirm that the payment wallet is functionable (1204)  |
 | 1205       | The transaction failed. Please try again later (1205)  |
 | 1212       | Please use the UnionPay overseas payment code (1212)  |
 | 1241       | The store does not exist or the status is incorrect. Do not conduct payments (1241)  |
@@ -636,6 +650,7 @@ Return code | <code>respcd</code> | String(4) | 0000 = Request successful. <br> 
 | 1243       | The store has been disabled. Do not conduct payments, contact the owner to confirm (1243)  |
 | 1250       | The transaction is forbidden. For more information please contact QFPay Customer Service Team (1250) |
 | 1251       | The store has not been configured correctly, we are currently working to fix this problem (1251)  |
+| 1252       | System error when making the order request (1252)  |
 | 1254       | A problem occured. We are currently resolving the issue (1254)  |
 | 1260       | The order has already been paid for, please confirm the transaction result before conducting more transactions (1260) |
 | 1261       | The order has not been paid for, please confirm the transaction result before conducting more transactions (1261)  |
@@ -1099,22 +1114,23 @@ If the merchant would like to enquire transaction in a month, they can provide s
 
 |Parameter name|Parameter code|Parameter type|Description|
 |----    |------|------  |------   |
-| Page number| <code>page</code>  |  | Int(8)  |  |
-| Request result description| <code>resperr</code> | | String(128) ||
-| Diplay number of items per page| <code>page_size</code>  |  | Int(8)  |  |
-| Request result code | <code>respcd</code>   |  | String(4)  |0000 - Interface call succeeded  |
-| Query result | <code>data</code> | | JSON |
+| Page number| <code>page</code>  | Int(8)  |  |
+| Request result description| <code>resperr</code> | String(128) ||
+| Diplay number of items per page| <code>page_size</code> | Int(8)  |  |
+| Request result code | <code>respcd</code>   | String(4)  |0000 - Interface call succeeded  |
+| Query result | <code>data</code> | | JSON format |
 | QFPay transaction number   |  <code>syssn</code>  |String(40) |  |
 | API order number |  <code>out_trade_no</code> | String(128) | External transaction number / Merchant platform transaction number | 
 | Payment type | <code>pay_type</code> | String(6) | Please refer to the page “Payment status codes” for a complete list of payment types |
 | Order Type |  <code>order_type</code> |  String(16) | Payment: Payment transaction Refund: Refund transaction |
 | Request transaction time | <code>txdtm</code> | String(20) | Request transaction time provided by merchant in payment and refund request. Format: YYYY-MM-DD hh&#58;mm:ss |
 | Transaction amount | <code>txamt</code> | Int(11) |  Amount of the transaction. Unit in cents (i.e. 100 = $1) |
-| System transaction time | <code>sysdtm</code> | String(20) |  Format: YYYY-MM-DD hh&#58;mm:ss |
+| System transaction time | <code>sysdtm</code>* | String(20) |  Format: YYYY-MM-DD hh&#58;mm:ss |
 | Cancellation or refund indicator | <code>cancel</code> | String(1) |  Transaction cancel status: <br> 0 = Not cancelled <br> 1 = For CPM: Transaction reversed or refunded successfully <br> 2 = For MPM: Transaction canceled successfully <br> 3 = Transaction refunded <br> 4 = Alipay Preauth order finished <br> 5 = Transaction partially refunded |
 | Payment status |  <code>respcd</code> | String(4) | 0000 = transaction succeeded <br> 1143/1145 = Please wait to evaluate the transaction status. All other response codes indicate transaction failure. |
 | Payment Status message | <code>errmsg</code> | String(128) | Payment result description |
 
+*The response parameter <code>sysdtm</code> will be used as the cut-off time for settlements.
 
 ## Account Statement 
 
@@ -1162,9 +1178,9 @@ The reversal API endpoint allows the merchant to cancel/ reverse a transaction t
 Parameter | Mandatory | Type | Description  
 --------- | ------- | --------- | ------- 
 <code>mchid</code> | No | String(16) | Merchant ID allocated by QFPay
-<code>syssn</code> | Yes | String(40) | QFPay transaction number, returned by the system once payment is completed
+<code>syssn</code> | Yes* | String(40) | QFPay transaction number, returned by the system once payment is completed
 <code>out_trade_no</code> | Yes* | String(128) | External transaction number
-<code>txamt</code> | Yes* | Int(11) | Amount of the transaction. Unit in cents (i.e. 100 = $1)
+<code>txamt</code> | Yes | Int(11) | Amount of the transaction. Unit in cents (i.e. 100 = $1)
 <code>txdtm</code> | Yes | String(20) | Transaction time fomat: YYYY-MM-DD hh:mm:ss
 <code>udid</code> | No | String(40) | Unique transaction device ID. Is displayed on the merchant portal.
 
@@ -1414,11 +1430,11 @@ Merchants can use the refund interface to refund transactions. The merchant acco
 |Refund Transaction ID | <code> syssn </code>  |String(40)   |New transaction ID referring to the newly created refund transaction|
 |Original Transaction ID| <code> orig_syssn </code>  |String(128)   |Previous transaction ID referring to the original transaction that has been refunded|
 |Refund amount| <code> txamt </code>   |Int(11)  | Amount of the refund. Unit in cents (i.e. 100 = $1)|
-|System transaction time | <code> sysdtm </code>  | String(20)  |Format: YYYY-MM-DD hh&#58;mm:ss|
+|System transaction time | <code>sysdtm</code>*  | String(20)  |Format: YYYY-MM-DD hh&#58;mm:ss|
 |Return code| <code> respcd </code> |  String(4)|  0000-Request successful.<br>1143/1145 - merchants are required to continue to query the transaction result. <br/>All other return codes indicate transaction failure. Please refer to the page Payment status codes for a complete list of payment types.|
 |Response message| <code> resperr </code> |  String(128)| |
 
-
+*The response parameter <code>sysdtm</code> will be used as the cut-off time for settlements.
 
 # Asynchronous Notifications
 
@@ -1471,7 +1487,7 @@ Parameter | Mandatory | Type | Description
 <code>paydtm</code> | Yes | String(20) | Payment time of the transaction 
 <code>cancel</code> | Yes | String  | Transaction cancel status: <br> 0 = Not cancelled <br> 1 = For CPM: Transaction reversed or refunded successfully <br> 2 = For MPM: Transaction canceled successfully <br> 3 = Transaction refunded <br> 4 = Alipay Preauth order finished <br> 5 = Transaction partially refunded
 <code>cardcd</code> | No | String | For WeChat and AliPay only. The user id dedicated to the payment account. 
-<code>goods_name</code> | No | String | Goods name or marking 
+<code>goods_name</code> | No | String | Goods name or marking. Custom goods name. Parameter needs to be **urlencode** if it is written in Chinese characters. 
 <code>status</code> | Yes | String | 1 = payment success 
 <code>txcurrcd</code> | Yes | String(3) | Currency: Hong Kong Dollar: HKD ; Chinese Yuan: CNY 
 <code>mchid</code> | No |  String(16) | Hashed merchant ID (Agents must provide this value) 
@@ -1639,7 +1655,7 @@ Request Body:
 |<code>syssn</code> |String(40)| QF Pay transaction number |  |
 |<code>orig_syssn</code> |String(40)| External transaction number| Developer platform transaction number |
 |<code>txdtm</code>  |String(20)| Time of the transaction request| Format: YYYY-MM-dd hh&#58;mm:ss |
-|<code>txamt</code>  |int(11)| Order payment amount |  |
+|<code>txamt</code>  |Int(11)| Order payment amount |  |
 |<code>sysdtm</code>   |String(20)| System trading time|  Format: YYYY-MM-dd hh&#58;mm:ss |
 |<code>respcd</code>   |String(4)| Return code |  |
 |<code>respmsg</code>    | String(128)| Information description |  |
@@ -1782,7 +1798,7 @@ Request Body:
 |:----    |:---|:----- |-----   |----   |
 |Public payment parameters    |—|— |—   |—   |
 |Product description    |<code>goods_info</code>|No | String  | Must not contain special characters   |
-|Payment mark    |<code>pay_tag</code>|No | String(16)  | The default value is ALIPAYHK<br>Alipay Continental version of the value: ALIPAYCN applies<br>801501 - Alipay Hong Kong pc scan code<br>801512 - Alipay Hong Kong Wap payment<br>801510 - Alipay Hong Kong APP payment  |
+|Payment mark    |<code>pay_tag</code>|No | String(16)  | The default value is: ALIPAYHK<br>Alipay Continental version: ALIPAYCN<br>801103 - Alipay overseas online refund (QF_BUSICD_ALIPAY_ONLINE_REFUND)<br>801104 - Alipay overseas online inquiry (QF_BUSICD_ALIPAY_ONLINE_QUERY)<br>801110 - Alipay overseas online APP payment (QF_BUSICD_ALIPAY_ONLINE_APP)<br>801501 - Alipay Hong Kong pc scan code<br>801512 - Alipay Hong Kong Wap payment<br>801510 - Alipay Hong Kong APP payment  |
 Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3)  | QRC expiration time in unit minutes. The default expiration time is 30 minutes. The parameter can manually be adjusted to a minimum of 5 minutes, and up to a maximum of 120 minutes.<br> Available for: <br>800201 - WeChat scan code<br>800101 - Alipay scan code <br>801512 - Alipay Hong Kong Wap payment<br>801501 - Alipay Hong Kong scan code<br>801107 - Alipay overseas Wap payment<br>801101 - Alipay overseas scan code<br>801010 - WeChat Hong Kong APP<br>801510 - Alipay Hong Kong APP
 
 
@@ -1817,7 +1833,7 @@ Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3
 
 
 
-# WeChat JSAPI (H5) Pay
+# WeChat Pay JSAPI (H5)
 
 <a href="https://sdk.qfapi.com/images/wechat_jsapi_process.jpg" target="_blank">   
 ![WeChat JSAPI process-flow](/images/wechat_jsapi_process.jpg)</a>
@@ -1960,10 +1976,10 @@ HTTP Request:
 
 |Parameter code | Mandatory | Parameter type | Description |
 |:----    |:---|:----- | -----   |-----   |
-|<code>mchntnm</code> | Yes | String(128) | Custom business name. Software architect needs to **urlencode** this parameter if it is written in Chinese characters |
+|<code>mchntnm</code> | Yes | String(128) | Custom business name. Parameter needs to be **urlencode** if it is written in Chinese characters |
 |<code>txamt</code>  | Yes  | Int(11) | Amount |
 |<code>currency</code>   | Yes  | String(3)|  |
-|<code>goods_name</code>   | No  | String(64)|  Custom goods name. Software architect needs to **urlencode** this parameter if it is written in Chinese characters |
+|<code>goods_name</code>   | No  | String(64)|  Custom goods name. Parameter needs to be **urlencode** if it is written in Chinese characters |
 |<code>redirect_url</code>   | Yes  | String(512)| Redirect URL after Payment is complete.  **Urlencode** handles this parameter |
 |<code>package</code>     | Yes | String(128) |Parameter return from WeChat after calling the payment API   |
 |<code>timeStamp</code>     | Yes | String(32) |Parameter return from WeChat after calling the payment API  |
