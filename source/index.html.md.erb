@@ -6,6 +6,7 @@ language_tabs: # must be one of https://git.io/vQNgJ
   - python: Python
   - java: Java
   - javascript: Node.js
+  - php: PHP
 
 toc_footers:
   - <a href='http://www.qfpay.com/global/'>QFPay Global Website</a>
@@ -22,7 +23,7 @@ search: true
 
 Welcome to the QF Pay open API SDK. To get started, please review the [Developer Instructions](#developer-instructions) below. Further information regarding system integration is available on our [official API documentaion](https://doc.qfapi.com/) and on our [GitHub Page](https://github.com/QFPay/QFPAY_Oversea/tree/master/Code).
 
-We have language bindings in Python, Java and Node.js! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right corner.
+We have language bindings in Python, Java, Node.js and PHP! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right corner.
 
 
 ## Developer Instructions
@@ -68,7 +69,7 @@ Europe | https://openapi-eur.qfapi.com
 ## Signature Generation
 
 ```plaintext
-For code instructions select Python, Java or Node.js with the tabs above.
+For code instructions select Python, Java, Node.js or PHP with the tabs above.
 ```
 
 
@@ -207,6 +208,50 @@ var hashed = crypto.createHash('md5').update(string).digest('hex')
 console.log(hashed)
 ```
 
+```php
+<?php
+ob_start();
+  function GetRandStr($length){
+  $str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  $len=strlen($str)-1;
+  $randstr='';
+  for($i=0;$i<$length;$i++){
+  $num=mt_rand(0,$len);
+  $randstr .= $str[$num];
+  }
+  return $randstr;
+  }
+  
+     $url = 'https://test-openapi-eur.qfapi.com';
+     $api_type = '/trade/v1/payment';
+     $pay_type = '800101';
+     //$mchid = "MNxMp11FV35qQN"; //錢方提供的mchid
+     $app_code = 'FF2FF74F2F2E42769A4A73*********'; //錢方提供的App Code
+     $app_key = '7BE791E0FD2E48E6926043B*********'; //錢方提供的App Key
+     $now_time = date("Y-m-d H:i:s"); //獲取當前時間    
+     
+     $fields_string = '';
+     $fields = array(
+	  //'mchid' => urlencode($mchid),
+      'pay_type' => urlencode($pay_type),
+	  'out_trade_no' => urlencode(GetRandStr(20)),
+      'txcurrcd' => urlencode('EUR'),
+	  'txamt' => urlencode(2200),
+	  'txdtm' => $now_time
+    );
+    ksort($fields); //字典排序A-Z升序方式
+    print_r($fields);
+    
+    foreach($fields as $key=>$value) { 
+	$fields_string .= $key.'='.$value.'&' ;
+  }
+  $fields_string = substr($fields_string , 0 , strlen($fields_string) - 1); //刪除最後一個 & 符號
+  
+  $sign = strtoupper(md5($fields_string . $app_key));
+
+  ob_end_flush();
+?>
+```
 
 > The above command returns JSON structured like this:
 
@@ -275,66 +320,6 @@ Verify that your onboarding credentials allow for the selected <code>pay_type</c
 </aside>
 
 ### PayType Table
-
-
-```java
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-
-
-public class Requests{
-    public static String sendPostRequest(String inputURL,String data,String appcode,String key) {
-        String resp="";
-        try {
-
-            // Send the request
-            URL url = new URL(inputURL);
-            URLConnection conn = url.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Accept-Charset", "utf-8");
-            conn.setRequestProperty("X-QF-APPCODE", appcode);
-            conn.setRequestProperty("X-QF-SIGN",QFPayUtils.getMd5Value(data+key));
-
-
-            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-
-            // Write parameters
-            writer.write(data);
-            writer.flush();
-
-            // Get the response
-            StringBuffer answer = new StringBuffer();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                answer.append(line);
-            }
-            writer.close();
-            reader.close();
-
-            resp=answer.toString();
-
-
-
-        } catch (MalformedURLException ex) {
-            ex.printStackTrace();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        return resp;
-
-
-
-    }
-
-}
-```
-
 
 Code | Description 
 --------- | ------- 
@@ -552,6 +537,70 @@ request({
 });
 ```
 
+```php
+<?php
+ob_start();
+  function GetRandStr($length){
+  $str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  $len=strlen($str)-1;
+  $randstr='';
+  for($i=0;$i<$length;$i++){
+  $num=mt_rand(0,$len);
+  $randstr .= $str[$num];
+  }
+  return $randstr;
+  }
+  
+     $url = 'https://test-openapi-eur.qfapi.com';
+     $api_type = '/trade/v1/payment';
+     $pay_type = '800101';
+     //$mchid = "MNxMp11FV35qQN"; //錢方提供的mchid
+     $app_code = 'FF2FF74F2F2E42769A4A73*********'; //錢方提供的App Code
+     $app_key = '7BE791E0FD2E48E6926043B*********'; //錢方提供的App Key
+     $now_time = date("Y-m-d H:i:s"); //獲取當前時間    
+     
+     $fields_string = '';
+     $fields = array(
+	  //'mchid' => urlencode($mchid),
+    'pay_type' => urlencode($pay_type),
+	  'out_trade_no' => urlencode(GetRandStr(20)),
+    'txcurrcd' => urlencode('EUR'),
+	  'txamt' => urlencode(2200),
+	  'txdtm' => $now_time
+    );
+    ksort($fields); //字典排序A-Z升序方式
+    print_r($fields);
+    
+    foreach($fields as $key=>$value) { 
+	$fields_string .= $key.'='.$value.'&' ;
+  }
+  $fields_string = substr($fields_string , 0 , strlen($fields_string) - 1); //刪除最後一個 & 符號
+  
+  $sign = strtoupper(md5($fields_string . $app_key));
+  
+  //// 設置Header ////
+  $header = array();
+  $header[] = 'X-QF-APPCODE: ' . $app_code;
+  $header[] = 'X-QF-SIGN: ' . $sign;
+  
+  //Post Data去錢方海外URL
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url . $api_type);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+  $output = curl_exec($ch);
+  curl_close($ch);    
+
+  $final_data = json_decode($output, true);
+  print_r($final_data);
+
+ob_end_flush();
+?>
+```
+
 > The above command returns JSON structured like this:
 
 ```json
@@ -604,16 +653,14 @@ Device ID | <code>udid</code> | No | String(40) |  Unique transaction device ID.
 Parameter name | Parameter code | Type | Description 
 --------- | -------- | --------- | ------- 
 Payment type | <code>pay_type</code> | String(6) | 
-System transaction time | <code>sysdtm</code>* | String(20) | Format：YYYY-MM-DD hh:mm:ss 
-Request transaction time | <code>txdtm</code> | String(20) | Format：YYYY-MM-DD hh:mm:ss  
+System transaction time | <code>sysdtm</code> | String(20) | Format：YYYY-MM-DD hh:mm:ss <br> This parameter value is used as the cut-off time for settlements. | 
+Request transaction time | <code>txdtm</code> | String(20) | Format：YYYY-MM-DD hh:mm:ss  | 
 Response message | <code>resperr</code> | String(128) |  
 Payment amount | <code>txamt</code> | Int(11) |  
 Other message information | <code>respmsg</code> | String(128) |  
 External transaction number | <code>out_trade_no</code> | String(128) | External transaction number  
 QFPay transaction number | <code>syssn</code> | String(40) | 
 Return code | <code>respcd</code> | String(4) | 0000 = Request successful. <br> 1143/1145 = merchants are required to continue to query the transaction result. <br> All other return codes indicate transaction failure. Please refer to the page [Transaction Status Codes](#transaction-status-codes) for a complete list of response codes. 
-
-*The response parameter <code>sysdtm</code> will be used as the cut-off time for settlements.
 
 
 ## Transaction Status Codes
@@ -864,7 +911,7 @@ The merchant generates a dynamic QR code based on the Alipay / WeChat Pay protoc
 |Parameter name| Parameter code|Mandatory|Parameter type|Description|
 |:----    |:---|:----- |-----   |-----   |
 |Public payment parameter | —  | — | — | — |
-|Payment mark | <code>pay_tag</code>  | No |     String(16) | The default value is ALIPAYHK Alipay <br/>Continental version of the value: ALIPAYCN <br/>801501 - Alipay Hong Kong PC scan code <br/>801512 - Alipay Hong Kong Wap payment <br/>801510 - Alipay Hong Kong APP payment |
+|Payment mark | <code>pay_tag</code>  | No |     String(16) | The default value is: ALIPAYHK<br>Alipay Continental version: ALIPAYCN<br>801103 - Alipay overseas online refund (QF_BUSICD_ALIPAY_ONLINE_REFUND)<br>801104 - Alipay overseas online inquiry (QF_BUSICD_ALIPAY_ONLINE_QUERY)<br>801110 - Alipay overseas online APP payment (QF_BUSICD_ALIPAY_ONLINE_APP)<br>801501 - Alipay Hong Kong pc scan code<br>801512 - Alipay Hong Kong Wap payment<br>801510 - Alipay Hong Kong APP payment  |
 Order expiration time | <code>expired_time</code> | No<br> (MPM only) | String(3)  | QRC expiration time in unit minutes. The default expiration time is 30 minutes. The parameter can manually be adjusted to a minimum of 5 minutes, and up to a maximum of 120 minutes.<br> Available for: <br>800201 - WeChat scan code<br>800101 - Alipay scan code <br>801512 - Alipay Hong Kong Wap payment<br>801501 - Alipay Hong Kong scan code<br>801107 - Alipay overseas Wap payment<br>801101 - Alipay overseas scan code<br>801010 - WeChat Hong Kong APP<br>801510 - Alipay Hong Kong APP
 |Designated payment method    |<code>limit_pay</code>|No |String   |The parameter value is specified as no_credit, and credit card payment is prohibited. This setting only applies to mainland China.  |
 
@@ -1049,6 +1096,70 @@ request({
 });
 ```
 
+```php
+<?php
+ob_start();
+  function GetRandStr($length){
+  $str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  $len=strlen($str)-1;
+  $randstr='';
+  for($i=0;$i<$length;$i++){
+  $num=mt_rand(0,$len);
+  $randstr .= $str[$num];
+  }
+  return $randstr;
+  }
+  
+     $url = 'https://test-openapi-eur.qfapi.com';
+     $api_type = '/trade/v1/query';
+     $syssn = '20200311066100020000977841';
+     //$out_trade_no = 'zCvo0IqTg0SaQkGnHd6w';
+     //$mchid = "MNxMp11FV35qQN"; //錢方提供的mchid
+     $app_code = 'FF2FF74F2F2E42769A4A73*********'; //錢方提供的App Code
+     $app_key = '7BE791E0FD2E48E6926043B*********'; //錢方提供的App Key
+     $now_time = date("Y-m-d H:i:s"); //獲取當前時間    
+     
+     $fields_string = '';
+     $fields = array(
+	  //'mchid' => urlencode($mchid),
+    'syssn' => urlencode($syssn),
+    //'out_trade_no' => urlencode($out_trade_no),
+    //'start_time' = '2020-03-01 00:00:00',
+    //'end_time' = '2020-03-04 23:59:59'
+    );
+    ksort($fields); //字典排序A-Z升序方式
+    print_r($fields);
+    
+    foreach($fields as $key=>$value) { 
+	$fields_string .= $key.'='.$value.'&' ;
+  }
+  $fields_string = substr($fields_string , 0 , strlen($fields_string) - 1); //刪除最後一個 & 符號
+  
+  $sign = strtoupper(md5($fields_string . $app_key));
+  
+  //// 設置Header ////
+  $header = array();
+  $header[] = 'X-QF-APPCODE: ' . $app_code;
+  $header[] = 'X-QF-SIGN: ' . $sign;
+  
+  //Post Data去錢方海外URL
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url . $api_type);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+  $output = curl_exec($ch);
+  curl_close($ch);    
+
+  $final_data = json_decode($output, true);
+  print_r($final_data);
+
+ob_end_flush();
+?>
+```
+
 > The above command returns JSON structured like this:
 
 ```json
@@ -1125,12 +1236,12 @@ If the merchant would like to enquire transaction in a month, they can provide s
 | Order Type |  <code>order_type</code> |  String(16) | Payment: Payment transaction Refund: Refund transaction |
 | Request transaction time | <code>txdtm</code> | String(20) | Request transaction time provided by merchant in payment and refund request. Format: YYYY-MM-DD hh&#58;mm:ss |
 | Transaction amount | <code>txamt</code> | Int(11) |  Amount of the transaction. Unit in cents (i.e. 100 = $1) |
-| System transaction time | <code>sysdtm</code>* | String(20) |  Format: YYYY-MM-DD hh&#58;mm:ss |
+| System transaction time | <code>sysdtm</code> | String(20) |  Format: YYYY-MM-DD hh&#58;mm:ss <br> This parameter value is used as the cut-off time for settlements. |
 | Cancellation or refund indicator | <code>cancel</code> | String(1) |  Transaction cancel status: <br> 0 = Not cancelled <br> 1 = For CPM: Transaction reversed or refunded successfully <br> 2 = For MPM: Transaction canceled successfully <br> 3 = Transaction refunded <br> 4 = Alipay Preauth order finished <br> 5 = Transaction partially refunded |
 | Payment status |  <code>respcd</code> | String(4) | 0000 = transaction succeeded <br> 1143/1145 = Please wait to evaluate the transaction status. All other response codes indicate transaction failure. |
 | Payment Status message | <code>errmsg</code> | String(128) | Payment result description |
 
-*The response parameter <code>sysdtm</code> will be used as the cut-off time for settlements.
+
 
 ## Account Statement 
 
@@ -1150,8 +1261,272 @@ The clearing statement for a particular payment channel is downloaded regularly.
 | <code>trade_date</code> | Yes | String(10) | Get a specific account statement for the selected date. Example: 2017-10-17
 
 
-
 # Reversal/ Cancel
+
+```plaintext
+
+For code instructions select Python, Java, Node.js or PHP with the tabs above.
+
+```
+
+
+```python
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jan  9 13:51:23 2020
+
+@author: root
+"""
+
+#!/usr/bin/env python
+#coding=utf8
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, hashlib
+import requests
+from hashids import Hashids
+import datetime
+import string
+import random
+
+# Enter Client Credentials
+environment = 'https://test-openapi-eur.qfapi.com'
+app_code = '3F504C39125E4886AB4741**********'
+client_key = '5744993FBC034DBBB995FA**********'
+
+
+# Create parameter values for data payload
+current_time = datetime.datetime.now().replace(microsecond=0)                                
+random_string = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
+
+print(current_time)
+
+# Create signature
+def make_req_sign(data, key):
+    keys = list(data.keys())
+    keys.sort()
+    p = []
+    for k in keys: 
+        v = data[k]
+        p.append('%s=%s'%(k,v))
+    unsign_str = ('&'.join(p) + key).encode("utf-8")
+    print(unsign_str)
+    s = hashlib.md5(unsign_str).hexdigest()
+    return s.upper()
+
+
+
+# Body payload
+txamt = '2500' #In USD,EUR,etc. Cent
+out_trade_no = '4MDGEJ7L496LAAU1V1HBY9HMOGWZWLXQ'
+syssn = '20200305066100020000977812' 
+txdtm = '2020-03-05 16:50:30' 
+mchid = 'MNxMp11FV35qQN'
+key = client_key
+
+
+#data ={'txamt': txamt, 'out_trade_no': out_trade_no, 'syssn': syssn, 'txdtm': txdtm, 'udid': udid, 'mchid': mchid}
+data ={'txamt': txamt, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'mchid': mchid}
+
+r = requests.post(environment+"/trade/v1/reversal",data=data,headers={'X-QF-APPCODE':app_code,'X-QF-SIGN':make_req_sign(data, key)})
+
+
+print(r.json())
+
+```
+
+
+```java
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+
+public class Refund {
+    public static void main(String args[]){
+        String appcode="3F504C39125E4886AB4741**********";
+        String key="5744993FBC034DBBB995FA**********";
+        String mchid="MNxMp11FV35qQN"; // Only Agents must provide the mchid
+
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String date=df.format(new Date());
+
+        String txdtm="2020-03-05 16:50:30"; 
+        String txamt="2500";
+        String syssn="20200305066100020000977812"; //only syssn or out_trade_no must be provided
+        String out_trade_no="4MDGEJ7L496LAAU1V1HBY9HMOGWZWLXQ"; //only syssn or out_trade_no must be provided
+
+
+        Map<String, String> unsortMap = new HashMap<>();
+        unsortMap.put("mchid", mchid);
+        unsortMap.put("txamt", txamt);
+        unsortMap.put("syssn", syssn);
+        unsortMap.put("out_trade_no", out_trade_no);
+        unsortMap.put("txdtm", txdtm);
+
+        String data=QFPayUtils.getDataString(unsortMap);
+        System.out.println("Data:\n"+data+key);
+        String md5Sum=QFPayUtils.getMd5Value(data+key);
+        System.out.println("Md5 Value:\n"+md5Sum);
+
+         //如果是国内钱台，网址是：https://openapi-test.qfpay.com.
+        String url="https://test-openapi-eur.qfapi.com";
+        String resp= Requests.sendPostRequest(url+"/trade/v1/reversal", data, appcode,key);
+        System.out.println(resp);
+    }
+}
+```
+
+
+```javascript
+
+// Enter Client Credentials
+environment = 'https://test-openapi-eur.qfapi.com'
+app_code = '3F504C39125E4886AB4741**********'
+client_key = '5744993FBC034DBBB995FA**********'
+
+// Generate Timestamp
+var dateTime = new Date().toISOString().replace(/T/, ' ').replace(/\..+/, '')
+console.log(dateTime)
+
+// Body Payload
+const key = client_key
+var tradenumber = String(Math.round(Math.random() * 1000000000))
+console.log(tradenumber)
+
+var payload = {
+'txamt': '2500', 
+'out_trade_no': '4MDGEJ7L496LAAU1V1HBY9HMOGWZWLXQ', //only syssn or out_trade_no must be provided
+'syssn': '20200305066100020000977812', //only syssn or out_trade_no must be provided
+'txdtm': '2020-03-05 16:50:30',
+'mchid': 'MNxMp11FV35qQN'
+};
+
+// Signature Generation
+const ordered = {};
+Object.keys(payload).sort().forEach(function(key) {
+  ordered[key] = payload[key] });
+console.log(ordered)
+
+var str = [];
+for (var p in ordered)
+if (ordered.hasOwnProperty(p)) {
+str.push((p) + "=" + (ordered[p]));
+}
+var string = str.join("&")+client_key;
+console.log(string)
+
+const crypto = require('crypto')
+var hashed = crypto.createHash('md5').update(string).digest('hex')
+console.log(hashed)
+
+
+// API Request
+var request = require("request");
+request({
+  uri: environment+"/trade/v1/reversal",
+  headers: {
+    'X-QF-APPCODE': app_code,
+    'X-QF-SIGN': hashed
+  },
+  method: "POST",
+  form: payload,
+  }, 
+  function(error, response, body) {
+  console.log(body);
+});
+
+```
+
+```php
+<?php
+ob_start();
+  function GetRandStr($length){
+  $str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  $len=strlen($str)-1;
+  $randstr='';
+  for($i=0;$i<$length;$i++){
+  $num=mt_rand(0,$len);
+  $randstr .= $str[$num];
+  }
+  return $randstr;
+  }
+  
+     $url = 'https://test-openapi-eur.qfapi.com';
+     $api_type = '/trade/v1/reversal';
+     $syssn = '800101';
+     //$out_trade_no = 'zCvo0IqTg0SaQkGnHd6w';
+     //$mchid = "MNxMp11FV35qQN"; //錢方提供的mchid
+     $app_code = 'FF2FF74F2F2E42769A4A73E********'; //錢方提供的App Code
+     $app_key = '7BE791E0FD2E48E6926043B5********'; //錢方提供的App Key
+     $now_time = date("Y-m-d H:i:s"); //獲取當前時間    
+     
+     $fields_string = '';
+     $fields = array(
+	  //'mchid' => urlencode($mchid),
+      'syssn' => urlencode($syssn),
+	  //'out_trade_no' => urlencode($out_trade_no),
+      'txcurrcd' => urlencode('EUR'),
+	  'txamt' => urlencode(2200),
+	  'txdtm' => date('2020-03-05 16:50:30'),
+    );
+    ksort($fields); //字典排序A-Z升序方式
+    print_r($fields);
+    
+    foreach($fields as $key=>$value) { 
+	$fields_string .= $key.'='.$value.'&' ;
+  }
+  $fields_string = substr($fields_string , 0 , strlen($fields_string) - 1); //刪除最後一個 & 符號
+  
+  $sign = strtoupper(md5($fields_string . $app_key));
+  
+  //// 設置Header ////
+  $header = array();
+  $header[] = 'X-QF-APPCODE: ' . $app_code;
+  $header[] = 'X-QF-SIGN: ' . $sign;
+  
+  //Post Data去錢方海外URL
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url . $api_type);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+  $output = curl_exec($ch);
+  curl_close($ch);    
+
+  $final_data = json_decode($output, true);
+  print_r($final_data);
+
+ob_end_flush();
+?>
+```
+
+> The above command returns JSON structured like this:
+
+```json
+
+{
+	"surcharge_fee": 0, 
+	"resperr": "success", 
+	"txdtm": "2020-03-05 16:50:30", 
+	"syssn": "20200305066100020000977814", 
+	"sysdtm": "2020-03-05 16:54:38", 
+	"txcurrcd": "EUR", 
+	"respmsg": "", 
+	"chnlsn2": "", 
+	"cardcd": "", 
+	"udid": "qiantai2", 
+	"txamt": "2500", 
+	"orig_syssn": "20200305066100020000977813", 
+	"surcharge_rate": 0, 
+	"respcd": "0000", 
+	"chnlsn": ""
+}
+```
 
 <aside class="warning">
 Reversals should be used as a last resort when the transaction status cannot be determined, e.g. no payment notification is received, the response timed-out, there are network issues and so on. The query API endpoint should be used first to check the transaction status.
@@ -1197,7 +1572,7 @@ Parameter | Type | Description
 <code>txamt</code> | Int(11) | Amount of the transaction. Unit in cents (i.e. 100 = $1)
 <code>txcurrcd</code> | String(3) | Transaction currency e.g. HKD
 <code>txdtm</code> | String(20) | Transaction time. Format: YYYY-MM-DD hh:mm:ss
-<code>sysdtm</code> | String(20) | System transaction time. Format: YYYY-MM-DD hh:mm:ss
+<code>sysdtm</code> | String(20) | System transaction time. Format: YYYY-MM-DD hh:mm:ss <br> This parameter value is used as the cut-off time for settlements.
 <code>chnlsn</code> | String | Transaction number from payment channel (wallet side)
 <code>respcd</code> | String(4) | Response code <br> 0000 = Reversal/ cancel successul <br> 1143/1145 = Reversal/ cancel in progress <br> others = Reversal/ cancel failed
 <code>resperr</code> | String(128) | Result description
@@ -1380,6 +1755,69 @@ request({
 });
 ```
 
+```php
+<?php
+ob_start();
+  function GetRandStr($length){
+  $str='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  $len=strlen($str)-1;
+  $randstr='';
+  for($i=0;$i<$length;$i++){
+  $num=mt_rand(0,$len);
+  $randstr .= $str[$num];
+  }
+  return $randstr;
+  }
+  
+     $url = 'https://test-openapi-eur.qfapi.com';
+     $api_type = '/trade/v1/refund';
+     $syssn = '20200311066100020000977840';
+     //$mchid = "MNxMp11FV35qQN"; //錢方提供的mchid
+     $app_code = 'FF2FF74F2F2E42769A4A73*********'; //錢方提供的App Code
+     $app_key = '7BE791E0FD2E48E6926043B*********'; //錢方提供的App Key
+     $now_time = date("Y-m-d H:i:s"); //獲取當前時間    
+     
+     $fields_string = '';
+     $fields = array(
+	  //'mchid' => urlencode($mchid),
+    'syssn' => urlencode($syssn),
+	  'out_trade_no' => urlencode(GetRandStr(20)),
+	  'txamt' => urlencode(2200),
+	  'txdtm' => $now_time
+    );
+    ksort($fields); //字典排序A-Z升序方式
+    print_r($fields);
+    
+    foreach($fields as $key=>$value) { 
+	$fields_string .= $key.'='.$value.'&' ;
+  }
+  $fields_string = substr($fields_string , 0 , strlen($fields_string) - 1); //刪除最後一個 & 符號
+  
+  $sign = strtoupper(md5($fields_string . $app_key));
+  
+  //// 設置Header ////
+  $header = array();
+  $header[] = 'X-QF-APPCODE: ' . $app_code;
+  $header[] = 'X-QF-SIGN: ' . $sign;
+  
+  //Post Data去錢方海外URL
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url . $api_type);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+  curl_setopt($ch, CURLOPT_POST, 1);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+  $output = curl_exec($ch);
+  curl_close($ch);    
+
+  $final_data = json_decode($output, true);
+  print_r($final_data);
+
+ob_end_flush();
+?>
+```
+
 > The above command returns JSON structured like this:
 
 ```json
@@ -1430,11 +1868,10 @@ Merchants can use the refund interface to refund transactions. The merchant acco
 |Refund Transaction ID | <code> syssn </code>  |String(40)   |New transaction ID referring to the newly created refund transaction|
 |Original Transaction ID| <code> orig_syssn </code>  |String(128)   |Previous transaction ID referring to the original transaction that has been refunded|
 |Refund amount| <code> txamt </code>   |Int(11)  | Amount of the refund. Unit in cents (i.e. 100 = $1)|
-|System transaction time | <code>sysdtm</code>*  | String(20)  |Format: YYYY-MM-DD hh&#58;mm:ss|
+|System transaction time | <code>sysdtm</code>  | String(20)  |Format: YYYY-MM-DD hh&#58;mm:ss <br> This parameter value is used as the cut-off time for settlements.|
 |Return code| <code> respcd </code> |  String(4)|  0000-Request successful.<br>1143/1145 - merchants are required to continue to query the transaction result. <br/>All other return codes indicate transaction failure. Please refer to the page Payment status codes for a complete list of payment types.|
 |Response message| <code> resperr </code> |  String(128)| |
 
-*The response parameter <code>sysdtm</code> will be used as the cut-off time for settlements.
 
 # Asynchronous Notifications
 
@@ -1445,7 +1882,7 @@ The request parameters from Asynchronous Notifications may include additional pa
 
 ### Description
 
-Upon successful payment and refund, QFPay API will send an asynchronous notification message to the URL address defined by the merchant. Merchant can develop an end-point to receive this notification message and update the status of a transaction accordingly. We recommend merchants to use the query function of the API in conjunction with the asynchronous notification end point to retireve the payment status. Asynchronous notifications only works ports 80 and 443 due to security requriement.
+Upon successful payment and refund, QFPay API will send an asynchronous notification message to the URL address defined by the merchant. Merchant can develop an end-point to receive this notification message and update the status of a transaction accordingly. We recommend merchants to use the query function of the API in conjunction with the asynchronous notification end point to retireve the payment status. Asynchronous notifications only work with ports 80 and 443 due to security requriements.
 
 ## Asynchronous Notification Rules
 
@@ -1483,7 +1920,7 @@ Parameter | Mandatory | Type | Description
 <code>txdtm</code> | Yes | String(20) | Order creation time supplied by merchant in payment request 
 <code>txamt</code> | Yes | Int(11) | Transaction amount 
 <code>respcd</code> | Yes | String(4) | Transaction status - Must be 0000 in async notification message 
-<code>sysdtm</code> | Yes | String(20) | Transaction creation time in system 
+<code>sysdtm</code> | Yes | String(20) | Transaction creation time in system. This parameter value is used as the cut-off time for settlements.
 <code>paydtm</code> | Yes | String(20) | Payment time of the transaction 
 <code>cancel</code> | Yes | String  | Transaction cancel status: <br> 0 = Not cancelled <br> 1 = For CPM: Transaction reversed or refunded successfully <br> 2 = For MPM: Transaction canceled successfully <br> 3 = Transaction refunded <br> 4 = Alipay Preauth order finished <br> 5 = Transaction partially refunded
 <code>cardcd</code> | No | String | For WeChat and AliPay only. The user id dedicated to the payment account. 
@@ -1643,7 +2080,7 @@ Request Body:
 |Merchant ID    |<code>mchid</code> | Yes  |String   | The unique merchant ID is created by QF Pay during the merchant onboarding process.    |
 |QF Pay transaction number    | <code>syssn</code> | No | String    | Multiple entries are separated by English commas |
 |External transaction number    | <code>out_trade_no</code> | No | String    | e.g. Developer platform order number |
-|Transaction amount    | <code>txamt</code> |No |    int   |Whether to pass this parameter depends on the payment channel, Alipay and WeChat Pay do not need to submit this information  |
+|Transaction amount    | <code>txamt</code> |No |    Int   |Whether to pass this parameter depends on the payment channel, Alipay and WeChat Pay do not need to submit this information  |
 |Transaction request time    |<code>txdtm</code>  |Yes  |String    |Format: YYYY-MM-dd hh&#58;mm:ss  |
 |Unique device id   |<code>udid</code> |No|String    |   |
 |Time zone    |<code>txzone</code> | No |String    |Used to record the local order time. The default is Beijing time GMT+8  |
@@ -1656,7 +2093,7 @@ Request Body:
 |<code>orig_syssn</code> |String(40)| External transaction number| Developer platform transaction number |
 |<code>txdtm</code>  |String(20)| Time of the transaction request| Format: YYYY-MM-dd hh&#58;mm:ss |
 |<code>txamt</code>  |Int(11)| Order payment amount |  |
-|<code>sysdtm</code>   |String(20)| System trading time|  Format: YYYY-MM-dd hh&#58;mm:ss |
+|<code>sysdtm</code>   |String(20)| System trading time|  Format: YYYY-MM-dd hh&#58;mm:ss <br> This parameter value is used as the cut-off time for settlements. |
 |<code>respcd</code>   |String(4)| Return code |  |
 |<code>respmsg</code>    | String(128)| Information description |  |
 |<code>resperr</code>    |String(128)| Description error |  |
@@ -1718,7 +2155,7 @@ Request Body:
 |<code>syssn</code> |   String(40) | QF Pay Transaction number | This number is being used when freezing funds, detucting money from the frozen amount as well as unfreezing funds. |
 |<code>orig_syssn</code>    |String(40)| External transaction number | Developer platform transaction number |
 |<code>txdtm</code>     | String(20) | Transaction request time | Format: YYYY-MM-DD hh&#58;mm:ss  |
-|<code>txamt</code>    |int(11)| Transaction amount | |
+|<code>txamt</code>    |Int(11)| Transaction amount | |
 |<code>sysdtm</code>     |String(20)| System transaction time |Format: YYYY-MM-DD hh&#58;mm:ss |
 |<code>respcd</code>    |String(4)| Return code |  |
 |<code>respmsg</code>    |String(128)| Information description|  |
@@ -2122,7 +2559,7 @@ Request Body:
 |<code>orig_syssn</code>    |String(40)| External transaction number | Developer platform transaction number |
 |<code>txdtm</code>     | String(20) | Transaction request time | Format: YYYY-MM-DD hh&#58;mm:ss  |
 |<code>txamt</code>    |Int(11)| Transaction amount | |
-|<code>sysdtm</code>     |String(20)| System transaction time |Format: YYYY-MM-DD hh&#58;mm:ss |
+|<code>sysdtm</code>     |String(20)| System transaction time |Format: YYYY-MM-DD hh&#58;mm:ss <br> This parameter value is used as the cut-off time for settlements.|
 |<code>respcd</code>    |String(4)| Return code |  |
 |<code>respmsg</code>    |String(128)| Information description|  |
 |<code>resperr</code>     |String(128)| Description error |  |
