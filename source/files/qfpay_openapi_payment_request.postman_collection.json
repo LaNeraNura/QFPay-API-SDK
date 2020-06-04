@@ -1,0 +1,147 @@
+{
+	"info": {
+		"_postman_id": "0084c151-5d67-4936-97f8-cb4027381be6",
+		"name": "QF Pay openAPI Payment Request",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "QF Pay openAPI Pre-Request Script",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "32d6c1e7-1ee6-4290-90a9-405e419e28f0",
+						"exec": [
+							"const crypto = require('crypto-js');",
+							"",
+							"const app_code = 'provided by QFPay'",
+							"const client_key = 'provided by QFPay'",
+							"",
+							"const pay_type = '800101'",
+							"const txamt = '10'",
+							"const txcurrcd = 'THB'",
+							"const mchid = 'provided by QFPay'",
+							"const out_trade_no = String(Math.round(Math.random() * 1000000000))",
+							"const txdtm = new Date().toISOString().replace(/T/, ' ').replace(/\\..+/, '')",
+							"",
+							"var payload = {",
+							"  'pay_type': pay_type,",
+							"  'txamt': txamt,",
+							"  'txcurrcd': txcurrcd,",
+							"  'mchid': mchid,",
+							"  'out_trade_no': out_trade_no,",
+							"  'txdtm': txdtm",
+							"};",
+							"",
+							"// Signature Generation",
+							"const ordered = {};",
+							"Object.keys(payload).sort().forEach(function (key) {",
+							"  ordered[key] = payload[key]",
+							"});",
+							"console.log(ordered)",
+							"",
+							"var str = [];",
+							"for (var p in ordered)",
+							"  if (ordered.hasOwnProperty(p)) {",
+							"    str.push((p) + \"=\" + (ordered[p]));",
+							"  }",
+							"var string = str.join(\"&\") + client_key;",
+							"console.log(string)",
+							"",
+							"var hashed = crypto.MD5(string, client_key)",
+							"console.log(hashed)",
+							"",
+							"postman.setEnvironmentVariable(\"SIGNATURE\", hashed)",
+							"postman.setEnvironmentVariable(\"APP_CODE\", app_code)",
+							"postman.setEnvironmentVariable(\"MCHID\", mchid)",
+							"postman.setEnvironmentVariable(\"PAYTYPE\", pay_type)",
+							"postman.setEnvironmentVariable(\"TXAMT\", txamt)",
+							"postman.setEnvironmentVariable(\"TXCURRCD\", txcurrcd)",
+							"postman.setEnvironmentVariable(\"OUTTRADENO\", out_trade_no)",
+							"postman.setEnvironmentVariable(\"TXDTM\", txdtm)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-QF-APPCODE",
+						"type": "text",
+						"value": "{{APP_CODE}}"
+					},
+					{
+						"key": "X-QF-SIGN",
+						"type": "text",
+						"value": "{{SIGNATURE}}"
+					},
+					{
+						"key": "",
+						"type": "text",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "mchid",
+							"value": "{{MCHID}}",
+							"type": "text"
+						},
+						{
+							"key": "txamt",
+							"value": "{{TXAMT}}",
+							"type": "text"
+						},
+						{
+							"key": "txcurrcd",
+							"value": "{{TXCURRCD}}",
+							"type": "text"
+						},
+						{
+							"key": "pay_type",
+							"value": "{{PAYTYPE}}",
+							"type": "text"
+						},
+						{
+							"key": "out_trade_no",
+							"value": "{{OUTTRADENO}}",
+							"type": "text"
+						},
+						{
+							"key": "txdtm",
+							"value": "{{TXDTM}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://openapi-test.qfpay.com/trade/v1/payment",
+					"protocol": "https",
+					"host": [
+						"openapi-test",
+						"qfpay",
+						"com"
+					],
+					"path": [
+						"trade",
+						"v1",
+						"payment"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
