@@ -1,29 +1,30 @@
 {
 	"info": {
 		"_postman_id": "0084c151-5d67-4936-97f8-cb4027381be6",
-		"name": "QF Pay openAPI Payment Request",
+		"name": "QF Pay openAPI - Main Requests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "QF Pay openAPI Pre-Request Script",
+			"name": "QF Pay openAPI - Payment",
 			"event": [
 				{
 					"listen": "prerequest",
 					"script": {
-						"id": "32d6c1e7-1ee6-4290-90a9-405e419e28f0",
+						"id": "84b3806d-c66f-400b-95f6-2be7041376c0",
 						"exec": [
 							"const crypto = require('crypto-js');",
 							"",
-							"const app_code = 'provided by QFPay'",
-							"const client_key = 'provided by QFPay'",
+							"const app_code = '*******'",
+							"const client_key = '*******'",
 							"",
-							"const pay_type = '800101'",
-							"const txamt = '10'",
+							"const pay_type = '802901'",
+							"const txamt = '1'",
 							"const txcurrcd = 'THB'",
-							"const mchid = 'provided by QFPay'",
+							"const mchid = '*******'",
 							"const out_trade_no = String(Math.round(Math.random() * 1000000000))",
 							"const txdtm = new Date().toISOString().replace(/T/, ' ').replace(/\\..+/, '')",
+							"//const auth_code = 'APTH7309962819735668'",
 							"",
 							"var payload = {",
 							"  'pay_type': pay_type,",
@@ -59,7 +60,8 @@
 							"postman.setEnvironmentVariable(\"TXAMT\", txamt)",
 							"postman.setEnvironmentVariable(\"TXCURRCD\", txcurrcd)",
 							"postman.setEnvironmentVariable(\"OUTTRADENO\", out_trade_no)",
-							"postman.setEnvironmentVariable(\"TXDTM\", txdtm)"
+							"postman.setEnvironmentVariable(\"TXDTM\", txdtm)",
+							"//postman.setEnvironmentVariable(\"AUTHCODE\", auth_code)"
 						],
 						"type": "text/javascript"
 					}
@@ -122,11 +124,116 @@
 							"key": "txdtm",
 							"value": "{{TXDTM}}",
 							"type": "text"
+						},
+						{
+							"key": "auth_code",
+							"value": "{{AUTHCODE}}",
+							"type": "text",
+							"disabled": true
 						}
 					]
 				},
 				"url": {
-					"raw": "https://openapi-test.qfpay.com/trade/v1/payment",
+					"raw": "https://test-openapi-th.qfapi.com/trade/v1/payment",
+					"protocol": "https",
+					"host": [
+						"test-openapi-th",
+						"qfapi",
+						"com"
+					],
+					"path": [
+						"trade",
+						"v1",
+						"payment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "QF Pay openAPI - Transaction Query",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "469bf357-52a9-429f-ba08-f451fbfa5e5a",
+						"exec": [
+							"const crypto = require('crypto-js');",
+							"",
+							"const app_code = '*******'",
+							"const client_key = '*******'",
+							"",
+							"const mchid = '*******'",
+							"const syssn = '202006230500010979'",
+							"",
+							"var payload = {",
+							"  'mchid': mchid,",
+							"  'syssn': syssn",
+							"};",
+							"",
+							"// Signature Generation",
+							"const ordered = {};",
+							"Object.keys(payload).sort().forEach(function (key) {",
+							"  ordered[key] = payload[key]",
+							"});",
+							"console.log(ordered)",
+							"",
+							"var str = [];",
+							"for (var p in ordered)",
+							"  if (ordered.hasOwnProperty(p)) {",
+							"    str.push((p) + \"=\" + (ordered[p]));",
+							"  }",
+							"var string = str.join(\"&\") + client_key;",
+							"console.log(string)",
+							"",
+							"var hashed = crypto.MD5(string, client_key)",
+							"console.log(hashed)",
+							"",
+							"postman.setEnvironmentVariable(\"SIGNATURE\", hashed)",
+							"postman.setEnvironmentVariable(\"APP_CODE\", app_code)",
+							"postman.setEnvironmentVariable(\"MCHID\", mchid)",
+							"postman.setEnvironmentVariable(\"SYSSN\", syssn)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-QF-APPCODE",
+						"type": "text",
+						"value": "{{APP_CODE}}"
+					},
+					{
+						"key": "X-QF-SIGN",
+						"type": "text",
+						"value": "{{SIGNATURE}}"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "mchid",
+							"value": "{{MCHID}}",
+							"type": "text"
+						},
+						{
+							"key": "syssn",
+							"value": "{{SYSSN}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://openapi-test.qfpay.com/trade/v1/query",
 					"protocol": "https",
 					"host": [
 						"openapi-test",
@@ -136,7 +243,136 @@
 					"path": [
 						"trade",
 						"v1",
-						"payment"
+						"query"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "QF Pay openAPI - Refund",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "54d9f166-ef6e-4000-9d98-4e7397f37a58",
+						"exec": [
+							"const crypto = require('crypto-js');",
+							"",
+							"const app_code = '*******'",
+							"const client_key = '*******'",
+							"",
+							"const syssn = '202006230500010979'",
+							"const txamt = '1'",
+							"const mchid = '*******'",
+							"const out_trade_no = String(Math.round(Math.random() * 1000000000))",
+							"const txdtm = new Date().toISOString().replace(/T/, ' ').replace(/\\..+/, '')",
+							"const auth_code = ''",
+							"",
+							"var payload = {",
+							"  'syssn': syssn,",
+							"  'txamt': txamt,",
+							"  'mchid': mchid,",
+							"  'out_trade_no': out_trade_no,",
+							"  'txdtm': txdtm",
+							"};",
+							"",
+							"// Signature Generation",
+							"const ordered = {};",
+							"Object.keys(payload).sort().forEach(function (key) {",
+							"  ordered[key] = payload[key]",
+							"});",
+							"console.log(ordered)",
+							"",
+							"var str = [];",
+							"for (var p in ordered)",
+							"  if (ordered.hasOwnProperty(p)) {",
+							"    str.push((p) + \"=\" + (ordered[p]));",
+							"  }",
+							"var string = str.join(\"&\") + client_key;",
+							"console.log(string)",
+							"",
+							"var hashed = crypto.MD5(string, client_key)",
+							"console.log(hashed)",
+							"",
+							"postman.setEnvironmentVariable(\"SIGNATURE\", hashed)",
+							"postman.setEnvironmentVariable(\"APP_CODE\", app_code)",
+							"postman.setEnvironmentVariable(\"MCHID\", mchid)",
+							"postman.setEnvironmentVariable(\"TXAMT\", txamt)",
+							"postman.setEnvironmentVariable(\"OUTTRADENO\", out_trade_no)",
+							"postman.setEnvironmentVariable(\"TXDTM\", txdtm)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					},
+					{
+						"key": "X-QF-APPCODE",
+						"type": "text",
+						"value": "{{APP_CODE}}"
+					},
+					{
+						"key": "X-QF-SIGN",
+						"type": "text",
+						"value": "{{SIGNATURE}}"
+					},
+					{
+						"key": "",
+						"type": "text",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "syssn",
+							"value": "{{SYSSN}}",
+							"type": "text"
+						},
+						{
+							"key": "mchid",
+							"value": "{{MCHID}}",
+							"type": "text"
+						},
+						{
+							"key": "txamt",
+							"value": "{{TXAMT}}",
+							"type": "text"
+						},
+						{
+							"key": "out_trade_no",
+							"value": "{{OUTTRADENO}}",
+							"type": "text"
+						},
+						{
+							"key": "txdtm",
+							"value": "{{TXDTM}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://test-openapi-th.qfapi.com/trade/v1/refund",
+					"protocol": "https",
+					"host": [
+						"test-openapi-th",
+						"qfapi",
+						"com"
+					],
+					"path": [
+						"trade",
+						"v1",
+						"refund"
 					]
 				}
 			},
