@@ -1748,6 +1748,8 @@ When the query transaction is a refund then an additional parameter <code>origss
 | Currency exchange rate |<code>exchange_rate</code>  | String | Applied currency conversion exchange rate |
 | Net payment amount |<code>cash_fee</code>  | String | Actual payment amount by user = transaction amount - discounts |
 | Payment currency |<code>cash_fee_type</code> | String | Actual payment currency e.g. CNY |
+| Net refund amount | <code>cash_refund_fee</code> | String | Actual refund amount |
+| Refund currency | <code>cash_refund_fee_type</code> | String | Actual refund currency e.g. CNY |
 
 
 
@@ -2366,6 +2368,10 @@ Merchants can use the refund interface to refund transactions. The merchant acco
 |System transaction time | <code>sysdtm</code>  | String(20)  |Format: YYYY-MM-DD hh&#58;mm:ss <br> This parameter value is used as the cut-off time for settlements.|
 |Return code| <code>respcd</code> |  String(4)|  0000-Request successful.<br>1143/1145 - merchants are required to continue to query the refund transaction result. <br/>All other return codes indicate transaction failure. Please refer to the section [payment status codes](#transaction-status-codes) for a complete list of return codes.|
 |Response message| <code>resperr</code> |  String(128)| Error message |
+| Net payment amount |<code>cash_fee</code>  | String | Actual payment amount by user = transaction amount - discounts |
+| Payment currency |<code>cash_fee_type</code> | String | Actual payment currency e.g. CNY |
+| Net refund amount | <code>cash_refund_fee</code> | String | Actual refund amount |
+| Refund currency | <code>cash_refund_fee_type</code> | String | Actual refund currency e.g. CNY |
 
 
 # Asynchronous Notifications
@@ -2480,13 +2486,15 @@ Parameter | Send always | Type | Description
 <code>notify_type</code> | Yes | String | Notification Type: <code>payment</code> or <code>refund</code> 
 <code>mchid</code> | No |  String | Unique merchant ID. This parameter is only returned to agents.
 <code>goods_name</code> | No | String | Goods name or marking. Custom goods name. Parameter needs to be **UTF-8** encoded if it is written in Chinese characters. 
-<code>cash_fee</code> | No | String | Actual payment amount by user = transaction amount - discounts 
-<code>cash_fee_type</code> | No | String | Actual payment currency e.g. CNY 
 <code>exchange_rate</code> | No | String | Applied currency conversion exchange rate
 <code>chnlsn2</code> | No | String | Additional transaction number added to the order
 <code>goods_info</code> | No | String | Product description
 <code>chnlsn</code> | No | String | Transaction number from the payment channel 
 <code>cardcd</code> | No | String | Card number
+<code>cash_fee</code> | No | String | Actual payment amount by user = transaction amount - discounts 
+<code>cash_fee_type</code> | No | String | Actual payment currency e.g. CNY 
+<code>cash_refund_fee</code> | No | String | Actual refund amount
+<code>cash_refund_fee_type</code> | No | String | Actual refund currency e.g. CNY 
 
 
 # Alipay Online Payments
