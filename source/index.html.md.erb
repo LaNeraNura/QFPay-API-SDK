@@ -12,6 +12,7 @@ toc_footers:
   - <a href='https://www.qfpay.global/'>QFPay Global Website</a>
   - <a href='https://android-sdk.qfapi.com/'>QFPay Android SDK</a>
   - <a href='https://www.qfpay.global/shopify-checkout'>Shopify Checkout Gateway</a>
+  - <a href='https://checkout-sdk.qfapi.com/'>QFPay Online Checkout</a>
   - <a href="https://sdk.qfapi.com/files/qfpay_openapi_payment_request.postman_collection.json" download>API Requests in Postman</a>
   - <a href="https://sdk.qfapi.com/files/qfpay_mini_program_payments_boilerplate.zip" download>Mini Program Boilerplate</a>
 
@@ -61,7 +62,7 @@ The table below depicts **base URLs** for each country/ region. There is a gener
 Environment Name | Test URL | Prod. URL
 --------- | ------- | ------- 
 Sandbox | https://openapi-test.qfpay.com |
-China Mainland | https://test-openapi.qfpay.com  | https://openapi.qfpay.com 
+China Mainland | https://openapi-test.qfpay.com  | https://openapi.qfpay.com 
 Hong Kong | https://test-openapi-hk.qfapi.com | https://openapi-hk.qfapi.com
 Japan |   | https://openapi-jp.qfapi.com
 Thailand | https://test-openapi-th.qfapi.com | https://openapi-th.qfapi.com 
@@ -383,6 +384,8 @@ Code | Description
 804214 | GrabPay Online Payment (MY Merchant)** (SG Merchant)*
 805208 | TrueMoney dynamic QRC Payment - Consumer Present Mode (CPM)
 805401 | ThaiQR dynamic QRC Payment - Merchant Present Mode (MPM) (SG and MY Merchant)***
+805508 | Credit Card: first_data Quick Payment Mode (HK Merchant) |
+805514 | Credit Card: first_data Security Verification Payment Mode (HK Merchant) |
 805601 | GoPay dynamic QRC Payment - Merchant Present Mode (MPM)***
 805612 | GoPay WAP Payment***
 
@@ -3663,7 +3666,8 @@ Order expiration time | <code>expired_time</code> | | No<br> (MPM only) | String
 Product name identification | <code>goods_name</code> | | No | String(64) | Goods Name / Marking: Cannot exceed 20 alphanumeric or contain special characters. Cannot be empty for app payment. Parameter needs to be **UTF-8** encoded if it is written in Chinese characters.
 QF Pay merchant number | <code>mchid</code> | | No | String(16) | May or may not be given to merchant. If MCHID is given, it is mandatory to provide the MCHID .On the contrary, if MCHID is not provided, merchants shall not pass the MCHID field in the API request. 
 Time zone | <code>txzone</code> | | No | String(5) | Transaction Time zone: Record of the transaction in local time, default time zone is Beijing time UTC+8. 
-Device ID | <code>udid</code> | | No | String(40) |  Unique transaction device ID. Is displayed on the merchant portal. 
+Device ID | <code>udid</code> | | No | String(40) | Unique transaction device ID. Is displayed on the merchant portal. 
+RMB Tag | <code>rmb_tag</code> | | No | String(1) | WeChat Pay in Hong Kong uses <code>rmb_tag</code> = Y together with <code>txcurrcd</code> = CNY to indicate that the transaction currency is RMB.
 Extended Customer Info | <code>extend_info</code> | <code>user_creid</code> <br> <code>user_truename</code> | No | Object | Real name customer identification. This parameter is currently only available for Mainland Chinese citizens and needs to be explicitly activated with WeChat for the selected [PayType](#payment-codes). The consumer's **national ID card number** is contained in the parameter <code>user_creid</code> and the payer's **real name** in encoded form or written in Chinese characters must be provided in <code>user_truename</code>. An example looks like this; extend_info = '{"user_creid":"430067798868676871","user_truename":"\\\u5c0f\\\u6797"}'
 
 
@@ -4189,7 +4193,9 @@ Request Body:
 |:----    |:---|:----- |-----   |----   |
 |Merchant ID    | <code>mchid</code>  | No | String  | The unique merchant ID is created by QF Pay during the merchant onboarding process. |
 |External transaction number    | <code>out_trade_no</code> | Yes | String    |Developer platform transaction number |
-|Transaction amount    | <code>txamt</code>  | Yes | Int     |The actual amount of consumption, the maximum deduction amount cannot exceed the fozen funds|
+|Transaction amount    | <code>txamt</code>  | Yes | String |The actual amount of consumption, the maximum deduction amount cannot exceed the fozen funds|
+|Currency | <code>txcurrcd</code> | Yes | String(3) | Transaction currency. View the Currencies table for a complete list of available currencies|
+|RMB Tag | <code>rmb_tag</code> | No | String(1) | WeChat Pay in Hong Kong uses <code>rmb_tag</code> = Y together with <code>txcurrcd</code> = CNY to indicate that the transaction currency is RMB.|
 |Transaction request time    | <code>txdtm</code>   | Yes | String      | Format: YYYY-MM-DD hh&#58;mm:ss|
 | Device ID   | <code>udid</code>   | No | String         |Must be unique|
 | Time zone | <code>txzone</code>    | No | String        |Used to record the local order time. The default is Beijing time GMT+8|
@@ -4213,6 +4219,258 @@ Request Body:
 |<code>txcurrcd</code>      |String| Currency  | Transaction currency. View the [Currencies](#currencies) table for a complete list of available currencies |
 
 
+# Credit Card Payments
+
+We currently support credit card payments in the [Hong Kong environment](#environments). For payment processing two separate methods can be used, **Quick Payment** and **Security Verification Payment**. All major credit card issuers are supported.
+
+| PayType | Description |
+|-------- |-------|
+| 805508  | Credit Card: first_data Quick Payment Mode |
+| 805514  | Credit Card: first_data Security Verification Payment Mode |
+
+
+## Quick Payment Mode
+
+```plaintext
+For code instructions select Python with the tabs above.
+```
+
+```python
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, hashlib
+import requests
+from hashids import Hashids
+import datetime
+import string
+import random
+import urllib.parse
+import json
+
+environment = 'https://test-openapi-hk.qfapi.com'
+app_code = '2FF33AA65F52471CB4DD82**********'
+client_key = '02F40E8FB4B8465BBD1936**********'
+
+
+# Create parameter values for data payload
+current_time = datetime.datetime.now().replace(microsecond=0)                                
+random_string = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
+
+print(current_time)
+
+# Create signature
+def make_req_sign(data, key):
+    keys = list(data.keys())
+    keys.sort()
+    p = []
+    for k in keys: 
+        v = data[k]
+        p.append('%s=%s'%(k,v))
+    unsign_str = ('&'.join(p) + key).encode("utf-8")
+    print(unsign_str)
+    s = hashlib.md5(unsign_str).hexdigest()
+    return s.upper()
+
+
+# Body payload
+txamt = '6' #In Cent
+txcurrcd = 'HKD'
+pay_type = '805508' 
+out_trade_no = random_string
+txdtm = current_time
+goods_name = 'Food'         
+
+key = client_key
+
+data = {'txamt': txamt, 'txcurrcd': txcurrcd, 'pay_type': pay_type, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'extend_info': json.dumps({
+                'quick_payinfo': {
+                    'card_no': '4035874000424977', 
+                    'exp_year': '24', 
+                    'exp_month': '12', 
+                    'security_code': '977',  #3-4 digit security code
+                }
+            })
+}
+
+r = requests.post(environment+"/trade/v1/payment",data=data,headers={'X-QF-APPCODE':app_code,'X-QF-SIGN':make_req_sign(data, key)})
+print(r.json())
+```
+
+```java
+For code instructions select Python with the tabs above.
+```
+
+```javascript
+For code instructions select Python with the tabs above.
+```
+
+```php
+For code instructions select Python with the tabs above.
+```
+
+Ordinary fast credit card payment which is similar to MPM. When placing an order, enter the transaction and credit card information, then you can directly debit the card. 
+
+`POST ../trade/v1/payment`
+`PayType: 805508`
+
+### Request Parameters
+
+Parameter name | Parameter code | Mandatory | Type | Description
+--------- | -------- | --------- | ------- | ------- 
+Payment amount | <code>txamt</code> | Yes | Int(11) | Amount of the transaction. Unit in cents (i.e. 100 = $1) 
+Currency | <code>txcurrcd</code> | Yes | String(3) | Transaction currency. View the [Currencies](#currencies) table for a complete list of available currencies
+Payment type | <code>pay_type</code> | Yes | String(6) | Please refer to the section [Payment Codes](#payment-codes) for a complete list of payment types
+API Order Number | <code>out_trade_no</code> | Yes | String(128)| External transaction number / Merchant platform transaction number: This parameter must be unique for each payment and refund request under the same merchant account in the system.
+Request transaction time | <code>txdtm</code> | Yes | String(20) | Transaction time format：<br> YYYY-MM-DD hh:mm:ss 
+Product name identification | <code>goods_name</code> | No | String(64) | Goods Name / Marking: Cannot exceed 20 alphanumeric or contain special characters. Cannot be empty for app payment. Parameter needs to be **UTF-8** encoded if it is written in Chinese characters.
+QF Pay merchant number | <code>mchid</code> | No | String(16) | May or may not be given to merchant. If MCHID is given, it is mandatory to provide the MCHID .On the contrary, if MCHID is not provided, merchants shall not pass in the MCHID parameter in the API request. 
+Time zone | <code>txzone</code> | No | String(5) | Transaction Time zone: Record of the transaction in local time, default time zone is Beijing time UTC+8. 
+Device ID | <code>udid</code> | No | String(40) |  Unique transaction device ID. Is displayed on the merchant portal. 
+Credit Card | <code>extend_info</code> | Yes | json | All information is mandatory to be provided. Example: <code>{"quick_payinfo": {"card_no": "6200xxx8888",#String(16) "exp_year": "2020",#String(4) "exp_month": "05",#String(2) "security_code": "888",#String(4)}}</code>
+
+
+### Response Parameters
+
+|Parameter name | Parameter code | Parameter type | Description |
+|:----    |:--- |-----   |----   |
+|Public payment parameters | — |— |— |
+
+
+## Security Verification Payment Mode
+
+```plaintext
+For code instructions select Python with the tabs above.
+```
+
+```python
+import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse, hashlib
+import requests
+from hashids import Hashids
+import datetime
+import string
+import random
+import urllib.parse
+import json
+
+environment = 'https://test-openapi-hk.qfapi.com'
+app_code = '2FF33AA65F52471CB4DD82**********'
+client_key = '02F40E8FB4B8465BBD1936**********'
+
+
+# Create parameter values for data payload
+current_time = datetime.datetime.now().replace(microsecond=0)                                
+random_string = ''.join(random.choices(string.ascii_uppercase + string.digits, k=32))
+
+print(current_time)
+
+# Create signature
+def make_req_sign(data, key):
+    keys = list(data.keys())
+    keys.sort()
+    p = []
+    for k in keys: 
+        v = data[k]
+        p.append('%s=%s'%(k,v))
+    unsign_str = ('&'.join(p) + key).encode("utf-8")
+    print(unsign_str)
+    s = hashlib.md5(unsign_str).hexdigest()
+    return s.upper()
+
+
+# Body payload
+txamt = '6' #In Cent
+txcurrcd = 'HKD'
+pay_type = '805514' 
+out_trade_no = random_string
+txdtm = current_time
+goods_name = 'Food'         
+
+key = client_key
+
+data = {'txamt': txamt, 'txcurrcd': txcurrcd, 'pay_type': pay_type, 'out_trade_no': out_trade_no, 'txdtm': txdtm, 'extend_info': json.dumps({
+                'quick_payinfo': {
+                    'card_no': '4035874000424977', 
+                    'exp_year': '24', 
+                    'exp_month': '12', 
+                    'security_code': '977',  #3-4 digit security code
+                }
+            })
+}
+
+r = requests.post(environment+"/trade/v1/payment",data=data,headers={'X-QF-APPCODE':app_code,'X-QF-SIGN':make_req_sign(data, key)})
+print(r.json())
+```
+
+```java
+For code instructions select Python with the tabs above.
+```
+
+```javascript
+For code instructions select Python with the tabs above.
+```
+
+```php
+For code instructions select Python with the tabs above.
+```
+
+3D security authentication payment. After placing an order, the customer must be verified by the 3D authentication page of the credit card issuing bank. The merchant can then confirm the transaction with the returned token after verification has been completed successfully.
+
+`POST ../trade/v1/payment`
+`PayType: 805514`
+
+### Request Parameters
+
+Parameter name | Parameter code | Mandatory | Type | Description
+--------- | -------- | --------- | ------- | ------- 
+Payment amount | <code>txamt</code> | Yes | Int(11) | Amount of the transaction. Unit in cents (i.e. 100 = $1) 
+Currency | <code>txcurrcd</code> | Yes | String(3) | Transaction currency. View the [Currencies](#currencies) table for a complete list of available currencies
+Payment type | <code>pay_type</code> | Yes | String(6) | Please refer to the section [Payment Codes](#payment-codes) for a complete list of payment types
+API Order Number | <code>out_trade_no</code> | Yes | String(128)| External transaction number / Merchant platform transaction number: This parameter must be unique for each payment and refund request under the same merchant account in the system.
+Request transaction time | <code>txdtm</code> | Yes | String(20) | Transaction time format：<br> YYYY-MM-DD hh:mm:ss 
+Product name identification | <code>goods_name</code> | No | String(64) | Goods Name / Marking: Cannot exceed 20 alphanumeric or contain special characters. Cannot be empty for app payment. Parameter needs to be **UTF-8** encoded if it is written in Chinese characters.
+QF Pay merchant number | <code>mchid</code> | No | String(16) | May or may not be given to merchant. If MCHID is given, it is mandatory to provide the MCHID .On the contrary, if MCHID is not provided, merchants shall not pass in the MCHID parameter in the API request. 
+Time zone | <code>txzone</code> | No | String(5) | Transaction Time zone: Record of the transaction in local time, default time zone is Beijing time UTC+8. 
+Device ID | <code>udid</code> | No | String(40) |  Unique transaction device ID. Is displayed on the merchant portal. 
+Credit Card | <code>extend_info</code> | Yes | json | All information is mandatory to be provided. Example: <code>{"quick_payinfo": {"card_no": "6200xxx8888",#String(16) "exp_year": "2020",#String(4) "exp_month": "05",#String(2) "security_code": "888",#String(4)}}</code>
+
+### Response Parameters
+
+|Parameter code | Secondary parameter code | Parameter type | Parameter name | Parameter description
+|:----    |:---|-----   |----   |----   |----   |
+|Public payment parameters | —|— |— |----   |----   |
+|<code>pay_params</code>  | <code>PaReq</code> | String(256)   | Payer ID Verification Information   | Use on the 3D verification page
+| —           | <code>MD</code>    | String(256)   | Merchant parameter   | Use on the 3D verification page
+| —           | <code>acsURL</code>    | String(256)   | 3D Verification URL | The returned URL is depended on the card issuer
+
+
+After the verification parameters got returned they have to be submitted to the authentication page of the issuing bank <code>acsURL</code> which will complete the authentication process. Developers can download the HTML boilerplate <a href="https://sdk.qfapi.com/files/Browser_Redirect_3DS_input.html" download>
+from here</a> which demonstrates the redirection step. Finally, customers are requested to provide authentication to the issuing bank. 
+
+<a href="https://sdk.qfapi.com/images/credit_card_authentication.png" target="_blank">   
+![Credit Card Authentication](/images/credit_card_authentication.png)</a>
+
+
+### Payment Status Verification
+
+Merchants are required to verify the transaction status to make sure the credit card has been charged successfully.
+
+`POST ../trade/v1/payment_verify`
+
+### Request Parameters
+
+Parameter name | Parameter code | Mandatory | Type | Description
+--------- | -------- | --------- | ------- | ------- 
+QFPay transaction number | <code>syssn</code> | Yes | String(128) | Original 3D express transaction number 
+Transaction request | <code> txdtm </code> | Yes | String(20) | Format: yyyy-MM-dd HH:mm:ss
+QFPay merchant number | <code> mchid </code> | No | String(16) | Only agents must provide this parameter
+Credit Card | <code>extend_info</code> | Yes | json | All information is mandatory to be provided. Example: <code>{"quick_payinfo": {"card_no": "6200xxx8888",#String(16) "exp_year": "2020",#String(4) "exp_month": "05",#String(2) "security_code": "888",#String(4)}}</code>
+
+
+### Response Parameters
+
+|Parameter name | Parameter code | Parameter type | Description |
+|:----    |:--- |-----   |----   |
+|Public payment parameters | — |— |— |
+
+
 # FAQs
 
 **Q1. In provided test account credentials which one is the partner or the merchant identifier?** <br>
@@ -4225,7 +4483,7 @@ A2.	No. An (Test/Production) account is country specific.
 **Q3. How can I test a transaction?** <br>
 A3.	Since test environment is a replica of production you can use production wallets to test transactions. If you need any assistance please contact tech support.
 	
-**Q4. I am getting <code>1143/1145</code> response code, what should I do next?** <br>
+**Q4. I receive a <code>1143/1145</code> response code, what should I do next?** <br>
 A4. It's advised to keep querying transaction status. If partner/merchant wants to process as binary status (success/fail), can mark the transaction as failed and upon a successful asynchronous notifications can apply for refund at backend.
 
 **Q5. There is no specific title for the payment method I want to integrate, what should I do?** <br>
